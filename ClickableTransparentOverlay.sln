@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.28307.168
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClickableTransparentOverlay", "ClickableTransparentOverlay\ClickableTransparentOverlay.csproj", "{F5CF8972-D0DA-4FC0-8796-E7C60101C8EA}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F5CF8972-D0DA-4FC0-8796-E7C60101C8EA}.Debug|x64.ActiveCfg = Debug|x64
+		{F5CF8972-D0DA-4FC0-8796-E7C60101C8EA}.Debug|x64.Build.0 = Debug|x64
+		{F5CF8972-D0DA-4FC0-8796-E7C60101C8EA}.Release|x64.ActiveCfg = Release|x64
+		{F5CF8972-D0DA-4FC0-8796-E7C60101C8EA}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {CC9A7790-CFC1-4D4F-AE2C-177A80D122C8}
+	EndGlobalSection
+EndGlobal
