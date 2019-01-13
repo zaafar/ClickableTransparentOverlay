@@ -5,6 +5,8 @@ VisualStudioVersion = 15.0.28307.168
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClickableTransparentOverlay", "ClickableTransparentOverlay\ClickableTransparentOverlay.csproj", "{F5CF8972-D0DA-4FC0-8796-E7C60101C8EA}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DriverProgram", "DriverProgram\DriverProgram.csproj", "{370E1945-EF74-4618-A2DE-B5796AC3093E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -15,6 +17,10 @@ Global
 		{F5CF8972-D0DA-4FC0-8796-E7C60101C8EA}.Debug|x64.Build.0 = Debug|x64
 		{F5CF8972-D0DA-4FC0-8796-E7C60101C8EA}.Release|x64.ActiveCfg = Release|x64
 		{F5CF8972-D0DA-4FC0-8796-E7C60101C8EA}.Release|x64.Build.0 = Release|x64
+		{370E1945-EF74-4618-A2DE-B5796AC3093E}.Debug|x64.ActiveCfg = Debug|x64
+		{370E1945-EF74-4618-A2DE-B5796AC3093E}.Debug|x64.Build.0 = Debug|x64
+		{370E1945-EF74-4618-A2DE-B5796AC3093E}.Release|x64.ActiveCfg = Release|x64
+		{370E1945-EF74-4618-A2DE-B5796AC3093E}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

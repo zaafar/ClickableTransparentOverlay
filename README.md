@@ -6,3 +6,5 @@ A library for creating clickable transparent overlay using Win32 API and ImGui.N
 * ImGui.NET
 * Veldrid
 * MouseKeyHook
+* .NET Core 2.0
+* .NET Framework  4.7.2
