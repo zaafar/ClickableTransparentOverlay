@@ -41,6 +41,7 @@
             _future_pos = Vector2.Zero;
 
             _window = new Sdl2Window("Overlay", x, x, width, height, SDL_WindowFlags.Borderless | SDL_WindowFlags.AlwaysOnTop | SDL_WindowFlags.Resizable | SDL_WindowFlags.SkipTaskbar, true);
+            // TODO: Create a new branch for Non-Veldrid dependent version. Ideally, we can directly use SDL2Window.
             _gd = VeldridStartup.CreateGraphicsDevice(_window, new GraphicsDeviceOptions(true, null, true), GraphicsBackend.Direct3D11);
             WinApi.EnableTransparent(_window.Handle);
             _window.Resized += () =>
@@ -84,8 +85,6 @@
 
         public void ResizeWindow(int x, int y, int width, int height)
         {
-            // TODO: Add lock here to pause the ImGUI thread before resizing
-            // TODO: Test mouse/imgui UI in a non-full screen overlay
             _future_pos.X = x;
             _future_pos.Y = y;
             _future_size.X = width;
@@ -97,14 +96,16 @@
 
         public void ShowWindow()
         {
-            // TODO: Test this feature for ImGui Display and Hooks
             _hook_controller.ResumeHooks();
             _is_visible = true;
         }
 
         public void HideWindow()
         {
-            //TODO: Test this feature for ImGui Display and Hooks
+            // TODO: Improve this function to do the following
+            //    1: Hide SDL2Window
+            //    2: Pause WhileLoop
+            // This will ensure we don't waste CPU/GPU resources while window is hidden
             _hook_controller.PauseHooks();
             _is_visible = false;
         }
