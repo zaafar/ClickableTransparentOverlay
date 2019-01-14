@@ -40,10 +40,10 @@
             _future_size = Vector2.Zero;
             _future_pos = Vector2.Zero;
 
-            _window = new Sdl2Window("Overlay", x, x, width, height, SDL_WindowFlags.Borderless | SDL_WindowFlags.AlwaysOnTop | SDL_WindowFlags.Resizable | SDL_WindowFlags.SkipTaskbar, true);
+            _window = new Sdl2Window("Overlay", x, x, width, height, SDL_WindowFlags.Borderless | SDL_WindowFlags.AlwaysOnTop | SDL_WindowFlags.SkipTaskbar, true);
             // TODO: Create a new branch for Non-Veldrid dependent version. Ideally, we can directly use SDL2Window.
             _gd = VeldridStartup.CreateGraphicsDevice(_window, new GraphicsDeviceOptions(true, null, true), GraphicsBackend.Direct3D11);
-            WinApi.EnableTransparent(_window.Handle);
+            WinApi.EnableTransparent(_window.Handle, new System.Drawing.Rectangle(_window.X , _window.Y, _window.Width, _window.Height));
             _window.Resized += () =>
             {
                 _gd.MainSwapchain.Resize((uint)_window.Width, (uint)_window.Height);
@@ -89,8 +89,9 @@
             _future_pos.Y = y;
             _future_size.X = width;
             _future_size.Y = height;
-            // TODO: move it to _window.Moved
+            // TODO: move following two lines to _window.Moved
             _hook_controller.UpdateWindowPosition(x, y);
+            WinApi.EnableTransparent(_window.Handle, new System.Drawing.Rectangle(x, y, width, height));
             _require_resize = true;
         }
 

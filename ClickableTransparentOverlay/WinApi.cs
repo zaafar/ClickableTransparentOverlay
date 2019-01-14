@@ -14,12 +14,47 @@
         private const int SW_HIDE = 0x00;
         private const int SW_SHOW = 0x05;
 
-        public static void EnableTransparent(IntPtr handle)
+        public static void EnableTransparent(IntPtr handle, System.Drawing.Rectangle size)
         {
             int windowLong = GetWindowLong(handle, GWL_EXSTYLE) | WS_EX_LAYERED | WS_EX_TRANSPARENT;
             SetWindowLong(handle, GWL_EXSTYLE, new IntPtr(windowLong));
-            SetLayeredWindowAttributes(handle, 0, 255, LWA_ALPHA | LWA_COLORKEY);
+            //SetLayeredWindowAttributes(handle, 0, 255, LWA_ALPHA /*| LWA_COLORKEY*/ );
+            Margins margins = Margins.FromRectangle(size);
+            DwmExtendFrameIntoClientArea(handle, ref margins);
         }
+
+        #region Structures
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct Margins
+        {
+            private int left, right, top, bottom;
+
+            public static Margins FromRectangle(System.Drawing.Rectangle rectangle)
+            {
+                var margins = new Margins
+                {
+                    left = rectangle.Left,
+                    right = rectangle.Right,
+                    top = rectangle.Top,
+                    bottom = rectangle.Bottom
+                };
+                return margins;
+            }
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct Rect
+        {
+            private readonly int left, top, right, bottom;
+
+            public System.Drawing.Rectangle ToRectangle(System.Drawing.Point point)
+            {
+                return new System.Drawing.Rectangle(point.X, point.Y, right - left, bottom - top);
+            }
+        }
+
+        #endregion Structures
 
         public static void HideConsoleWindow()
         {
@@ -32,6 +67,9 @@
             var handle = GetConsoleWindow();
             ShowWindow(handle, SW_SHOW);
         }
+
+        [DllImport("dwmapi.dll")]
+        private static extern IntPtr DwmExtendFrameIntoClientArea(IntPtr hWnd, ref Margins pMarInset);
 
         [DllImport("user32.dll", SetLastError = true)]
         private static extern int GetWindowLong(IntPtr hWnd, int nIndex);
