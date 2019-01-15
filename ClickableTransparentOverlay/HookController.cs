@@ -166,15 +166,21 @@
             {
                 return;
             }
-            // TODO:
+
+            var io = ImGui.GetIO();
+
+            if (io.KeyAlt) // Ignoring ALT key so we can do ALT+TAB or ALT+F4 etc. Not sure if ImGUI uses ALT key in anyway.
+                return;
+
+            if (io.WantTextInput || io.WantCaptureKeyboard)
+            {
+                io.AddInputCharacter(e.KeyChar);
+                e.Handled = true;
+            }
         }
 
         private void _hook_KeyUp(object sender, KeyEventArgs e)
         {
-            if (!Enable)
-            {
-                return;
-            }
             // TODO:
         }
 

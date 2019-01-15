@@ -13,7 +13,7 @@
     /// A modified version of ImGui.NET.SampleProgram's ImGuiController.
     /// Manages input for ImGui and handles rendering ImGui's DrawLists with Veldrid.
     /// </summary>
-    public class ImGuiController : IDisposable
+    public sealed class ImGuiController : IDisposable
     {
         private GraphicsDevice _gd;
         private bool _frameBegun;

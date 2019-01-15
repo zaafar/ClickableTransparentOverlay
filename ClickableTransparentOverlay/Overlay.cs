@@ -24,6 +24,7 @@
         private static Vector2 _future_size;
         private static int _fps;
         private static bool _is_visible;
+        private static bool _is_closed;
         private static bool _require_resize;
         private static bool _start_resizing;
         private static object _resize_thread_lock;
@@ -33,6 +34,7 @@
             _clearColor = new Vector4(0.00f, 0.00f, 0.00f, 0.00f);
             _fps = fps;
             _is_visible = true;
+            _is_closed = false;
             // Stuff related to (thread safe) resizing of SDL2Window
             _require_resize = false;
             _start_resizing = false;
@@ -43,7 +45,7 @@
             _window = new Sdl2Window("Overlay", x, x, width, height, SDL_WindowFlags.Borderless | SDL_WindowFlags.AlwaysOnTop | SDL_WindowFlags.SkipTaskbar, true);
             // TODO: Create a new branch for Non-Veldrid dependent version. Ideally, we can directly use SDL2Window.
             _gd = VeldridStartup.CreateGraphicsDevice(_window, new GraphicsDeviceOptions(true, null, true), GraphicsBackend.Direct3D11);
-            WinApi.EnableTransparent(_window.Handle, new System.Drawing.Rectangle(_window.X , _window.Y, _window.Width, _window.Height));
+            NativeMethods.EnableTransparent(_window.Handle, new System.Drawing.Rectangle(_window.X , _window.Y, _window.Width, _window.Height));
             _window.Resized += () =>
             {
                 _gd.MainSwapchain.Resize((uint)_window.Width, (uint)_window.Height);
@@ -53,6 +55,10 @@
                     _require_resize = false;
                     _start_resizing = false;
                 }
+            };
+            _window.Closed += () =>
+            {
+                _is_closed = true;
             };
 
             _cl = _gd.ResourceFactory.CreateCommandList();
@@ -65,7 +71,7 @@
         {
             _ui_thread.Start();
             _hook_controller.EnableHooks();
-            WinApi.HideConsoleWindow();
+            NativeMethods.HideConsoleWindow();
             Application.Run(new ApplicationContext());
         }
 
@@ -73,13 +79,20 @@
         {
             _is_visible = false;
             _window.Close();
+            while (!_is_closed)
+            {
+                Thread.Sleep(10);
+            }
+
             _ui_thread.Join();
             _gd.WaitForIdle();
             _im_controller.Dispose();
             _cl.Dispose();
             _gd.Dispose();
             _hook_controller.Dispose();
-            WinApi.ShowConsoleWindow();
+            NativeMethods.ShowConsoleWindow();
+            _resize_thread_lock = null;
+            SubmitUI = null;
             Console.WriteLine("All Overlay resources are cleared.");
         }
 
@@ -91,7 +104,7 @@
             _future_size.Y = height;
             // TODO: move following two lines to _window.Moved
             _hook_controller.UpdateWindowPosition(x, y);
-            WinApi.EnableTransparent(_window.Handle, new System.Drawing.Rectangle(x, y, width, height));
+            NativeMethods.EnableTransparent(_window.Handle, new System.Drawing.Rectangle(x, y, width, height));
             _require_resize = true;
         }
 

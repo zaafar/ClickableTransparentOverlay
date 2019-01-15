@@ -7,14 +7,14 @@
     class Program
     {
         private static Overlay demo;
-        private static int Width;
-        private static int Height;
-        private static int Fps;
+        private static int Width = 2560;
+        private static int Height = 1440;
+        private static int Fps = 144;
         static void Main(string[] args)
         {
-            Width = int.Parse(System.IO.File.ReadAllText("config/width.txt"));
-            Height = int.Parse(System.IO.File.ReadAllText("config/height.txt"));
-            Fps = int.Parse(System.IO.File.ReadAllText("config/fps.txt"));
+            //Width = int.Parse(System.IO.File.ReadAllText("config/width.txt"));
+            //Height = int.Parse(System.IO.File.ReadAllText("config/height.txt"));
+            //Fps = int.Parse(System.IO.File.ReadAllText("config/fps.txt"));
             var EndDemo = new Thread(DistroyDemo);
             EndDemo.Start();
             StartDemo();
@@ -30,7 +30,7 @@
         public static void DistroyDemo()
         {
             Thread.Sleep(10000);
-            demo.ResizeWindow(100, 100, 1024, 1024);
+            demo.ResizeWindow(0, 0, 2560, 1440);
             Thread.Sleep(10000);
             demo.HideWindow();
             Thread.Sleep(10000);
