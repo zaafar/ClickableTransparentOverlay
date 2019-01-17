@@ -29,13 +29,13 @@
 
         public static void DistroyDemo()
         {
-            Thread.Sleep(10000);
-            demo.ResizeWindow(0, 0, 2560, 1440);
-            Thread.Sleep(10000);
-            demo.HideWindow();
-            Thread.Sleep(10000);
-            demo.ShowWindow();
-            Thread.Sleep(10000);
+            Thread.Sleep(100000);
+            //demo.ResizeWindow(0, 0, 2560, 1440);
+            //Thread.Sleep(10000);
+            //demo.HideWindow();
+            //Thread.Sleep(10000);
+            //demo.ShowWindow();
+            //Thread.Sleep(10000);
             demo.Dispose();
         }
     }

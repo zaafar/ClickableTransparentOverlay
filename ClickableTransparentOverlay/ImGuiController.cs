@@ -325,25 +325,28 @@
         private static void SetKeyMappings()
         {
             ImGuiIOPtr io = ImGui.GetIO();
-            io.KeyMap[(int)ImGuiKey.Tab] = (int)Key.Tab;
-            io.KeyMap[(int)ImGuiKey.LeftArrow] = (int)Key.Left;
-            io.KeyMap[(int)ImGuiKey.RightArrow] = (int)Key.Right;
-            io.KeyMap[(int)ImGuiKey.UpArrow] = (int)Key.Up;
-            io.KeyMap[(int)ImGuiKey.DownArrow] = (int)Key.Down;
-            io.KeyMap[(int)ImGuiKey.PageUp] = (int)Key.PageUp;
-            io.KeyMap[(int)ImGuiKey.PageDown] = (int)Key.PageDown;
-            io.KeyMap[(int)ImGuiKey.Home] = (int)Key.Home;
-            io.KeyMap[(int)ImGuiKey.End] = (int)Key.End;
-            io.KeyMap[(int)ImGuiKey.Delete] = (int)Key.Delete;
-            io.KeyMap[(int)ImGuiKey.Backspace] = (int)Key.BackSpace;
-            io.KeyMap[(int)ImGuiKey.Enter] = (int)Key.Enter;
-            io.KeyMap[(int)ImGuiKey.Escape] = (int)Key.Escape;
-            io.KeyMap[(int)ImGuiKey.A] = (int)Key.A;
-            io.KeyMap[(int)ImGuiKey.C] = (int)Key.C;
-            io.KeyMap[(int)ImGuiKey.V] = (int)Key.V;
-            io.KeyMap[(int)ImGuiKey.X] = (int)Key.X;
-            io.KeyMap[(int)ImGuiKey.Y] = (int)Key.Y;
-            io.KeyMap[(int)ImGuiKey.Z] = (int)Key.Z;
+            io.KeyMap[(int)ImGuiKey.Tab] = (int)System.Windows.Forms.Keys.Tab;
+            io.KeyMap[(int)ImGuiKey.LeftArrow] = (int)System.Windows.Forms.Keys.Left;
+            io.KeyMap[(int)ImGuiKey.RightArrow] = (int)System.Windows.Forms.Keys.Right;
+            io.KeyMap[(int)ImGuiKey.UpArrow] = (int)System.Windows.Forms.Keys.Up;
+            io.KeyMap[(int)ImGuiKey.DownArrow] = (int)System.Windows.Forms.Keys.Down;
+            io.KeyMap[(int)ImGuiKey.PageUp] = (int)System.Windows.Forms.Keys.PageUp;
+            io.KeyMap[(int)ImGuiKey.PageDown] = (int)System.Windows.Forms.Keys.PageDown;
+            io.KeyMap[(int)ImGuiKey.Home] = (int)System.Windows.Forms.Keys.Home;
+            io.KeyMap[(int)ImGuiKey.End] = (int)System.Windows.Forms.Keys.End;
+            io.KeyMap[(int)ImGuiKey.Delete] = (int)System.Windows.Forms.Keys.Delete;
+            io.KeyMap[(int)ImGuiKey.Backspace] = (int)System.Windows.Forms.Keys.Back;
+            io.KeyMap[(int)ImGuiKey.Enter] = (int)System.Windows.Forms.Keys.Enter;
+            io.KeyMap[(int)ImGuiKey.Escape] = (int)System.Windows.Forms.Keys.Escape;
+            //io.KeyMap[(int)ImGuiKey.COUNT] = (int)System.Windows.Forms.Keys.un;
+            io.KeyMap[(int)ImGuiKey.Insert] = (int)System.Windows.Forms.Keys.Insert;
+            io.KeyMap[(int)ImGuiKey.Space] = (int)System.Windows.Forms.Keys.Space;
+            io.KeyMap[(int)ImGuiKey.A] = (int)System.Windows.Forms.Keys.A;
+            io.KeyMap[(int)ImGuiKey.C] = (int)System.Windows.Forms.Keys.C;
+            io.KeyMap[(int)ImGuiKey.V] = (int)System.Windows.Forms.Keys.V;
+            io.KeyMap[(int)ImGuiKey.X] = (int)System.Windows.Forms.Keys.X;
+            io.KeyMap[(int)ImGuiKey.Y] = (int)System.Windows.Forms.Keys.Y;
+            io.KeyMap[(int)ImGuiKey.Z] = (int)System.Windows.Forms.Keys.Z;
         }
 
         private void RenderImDrawData(ImDrawDataPtr draw_data, GraphicsDevice gd, CommandList cl)
