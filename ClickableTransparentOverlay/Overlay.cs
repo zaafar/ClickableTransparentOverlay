@@ -94,6 +94,7 @@
             _resize_thread_lock = null;
             SubmitUI = null;
             Console.WriteLine("All Overlay resources are cleared.");
+            Application.Exit();
         }
 
         public void ResizeWindow(int x, int y, int width, int height)
