@@ -29,7 +29,7 @@
 
         public static void DistroyDemo()
         {
-            Thread.Sleep(100000);
+            Thread.Sleep(10000);
             //demo.ResizeWindow(0, 0, 2560, 1440);
             //Thread.Sleep(10000);
             //demo.HideWindow();
