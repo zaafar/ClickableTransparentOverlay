@@ -2,6 +2,7 @@
 {
     using ClickableTransparentOverlay;
     using ImGuiNET;
+    using System;
     using System.Threading;
 
     class Program
@@ -12,9 +13,15 @@
         private static int Fps = 144;
         static void Main(string[] args)
         {
-            //Width = int.Parse(System.IO.File.ReadAllText("config/width.txt"));
-            //Height = int.Parse(System.IO.File.ReadAllText("config/height.txt"));
-            //Fps = int.Parse(System.IO.File.ReadAllText("config/fps.txt"));
+            Console.Write("Enter Screen Width:");
+            Width = Convert.ToInt32(Console.ReadLine());
+
+            Console.Write("Enter Screen Height:");
+            Height = Convert.ToInt32(Console.ReadLine());
+
+            Console.Write("Enter Monitor Max FPS:");
+            Fps = Convert.ToInt32(Console.ReadLine());
+
             var EndDemo = new Thread(DistroyDemo);
             EndDemo.Start();
             StartDemo();
