@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("ClickableTransparentOverlay")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyDescription("A library for creating clickable transparent overlay")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("ClickableTransparentOverlay")]
