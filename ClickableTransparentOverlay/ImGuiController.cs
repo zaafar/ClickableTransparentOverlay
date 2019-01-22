@@ -8,6 +8,7 @@
     using Veldrid;
     using System.Runtime.CompilerServices;
     using ImGuiNET;
+    using NativeLibraryLoader;
 
     /// <summary>
     /// A modified version of ImGui.NET.SampleProgram's ImGuiController.
@@ -46,6 +47,10 @@
         private readonly Dictionary<IntPtr, ResourceSetInfo> _viewsById = new Dictionary<IntPtr, ResourceSetInfo>();
         private readonly List<IDisposable> _ownedResources = new List<IDisposable>();
         private int _lastAssignedID = 100;
+
+#pragma warning disable CS0169 // Force Copy this DLL
+        private static DefaultPathResolver ___;
+#pragma warning restore CS0169
 
         /// <summary>
         /// Constructs a new ImGuiController.
