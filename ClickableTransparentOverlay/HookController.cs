@@ -1,6 +1,7 @@
 ﻿// <copyright file="HookController.cs" company="Zaafar Ahmed">
 // Copyright (c) Zaafar Ahmed. All rights reserved.
 // </copyright>
+
 namespace ClickableTransparentOverlay
 {
     using System.Numerics;

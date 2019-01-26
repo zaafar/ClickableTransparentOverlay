@@ -1,4 +1,8 @@
-﻿namespace ClickableTransparentOverlay
+﻿// <copyright file="Overlay.cs" company="Zaafar Ahmed">
+// Copyright (c) Zaafar Ahmed. All rights reserved.
+// </copyright>
+
+namespace ClickableTransparentOverlay
 {
     using System;
     using System.Numerics;
@@ -8,6 +12,9 @@
     using Veldrid.Sdl2;
     using Veldrid.StartupUtilities;
 
+    /// <summary>
+    /// A class to create clickable transparent overlay
+    /// </summary>
     public class Overlay
     {
         private static Sdl2Window _window;
