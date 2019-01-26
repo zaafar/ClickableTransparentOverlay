@@ -58,6 +58,7 @@
     <NoWarn>
     </NoWarn>
     <GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
+    <DocumentationFile>bin\x64\Release\ClickableTransparentOverlay.xml</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Gma.System.MouseKeyHook, Version=5.6.130.0, Culture=neutral, processorArchitecture=MSIL">
@@ -112,6 +113,7 @@
     <None Include="packages.config" />
     <EmbeddedResource Include="Shaders\HLSL\imgui-vertex.hlsl.bytes" LogicalName="imgui-vertex.hlsl.bytes" />
     <EmbeddedResource Include="Shaders\HLSL\imgui-frag.hlsl.bytes" LogicalName="imgui-frag.hlsl.bytes" />
+    <AdditionalFiles Include="stylecop.json" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="cimgui.dll">
