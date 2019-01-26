@@ -69,7 +69,7 @@ namespace ClickableTransparentOverlay
 
             window = new Sdl2Window("Overlay", x, x, width, height, SDL_WindowFlags.Borderless | SDL_WindowFlags.AlwaysOnTop | SDL_WindowFlags.SkipTaskbar, true);
             graphicsDevice = VeldridStartup.CreateGraphicsDevice(window, new GraphicsDeviceOptions(true, null, true), GraphicsBackend.Direct3D11);
-            NativeMethods.EnableTransparent(window.Handle, new System.Drawing.Rectangle(window.X , window.Y, window.Width, window.Height));
+            NativeMethods.EnableTransparent(window.Handle, new System.Drawing.Rectangle(window.X, window.Y, window.Width, window.Height));
             window.Resized += () =>
             {
                 graphicsDevice.MainSwapchain.Resize((uint)window.Width, (uint)window.Height);
@@ -196,6 +196,7 @@ namespace ClickableTransparentOverlay
                             Sdl2Native.SDL_SetWindowSize(window.SdlWindowHandle, (int)futureSize.X, (int)futureSize.Y);
                             startResizing = true;
                         }
+
                         continue;
                     }
                 }
