@@ -113,7 +113,7 @@ namespace ClickableTransparentOverlay
         }
 
         /// <summary>
-        /// Disposes the resources aquired by the ImGuiController class.
+        /// Disposes the resources acquired by the ImGuiController class.
         /// </summary>
         public void DestroyDeviceObjects()
         {

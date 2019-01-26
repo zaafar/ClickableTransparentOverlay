@@ -41,11 +41,11 @@
         public static void DistroyDemo()
         {
             Thread.Sleep(RunFor * 1000);
-            demo.ResizeWindow(200, 200, 1024, 1024);
+            demo.Resize(200, 200, 1024, 1024);
             Thread.Sleep(RunFor * 1000);
-            demo.HideWindow();
+            demo.Hide();
             Thread.Sleep(RunFor * 1000);
-            demo.ShowWindow();
+            demo.Show();
             Thread.Sleep(RunFor * 1000);
             demo.Dispose();
         }

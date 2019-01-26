@@ -85,7 +85,7 @@ namespace ClickableTransparentOverlay
         }
 
         /// <summary>
-        /// Dispose the resources aquired by this class
+        /// Dispose the resources acquired by this class
         /// </summary>
         public void Dispose()
         {

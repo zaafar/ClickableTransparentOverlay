@@ -17,158 +17,208 @@ namespace ClickableTransparentOverlay
     /// </summary>
     public class Overlay
     {
-        private static Sdl2Window _window;
-        private static GraphicsDevice _gd;
-        private static CommandList _cl;
-        private static ImGuiController _im_controller;
-        private static HookController _hook_controller;
-        private static Thread _ui_thread;
-        public event EventHandler SubmitUI;
+        private static Sdl2Window window;
+        private static GraphicsDevice graphicsDevice;
+        private static CommandList commandList;
+        private static ImGuiController imController;
+        private static HookController hookController;
+        private static Thread uiThread;
 
         // UI State
-        private static Vector4 _clearColor;
-        private static Vector2 _future_pos;
-        private static Vector2 _future_size;
-        private static int _fps;
-        private static bool _is_visible;
-        private static bool _is_closed;
-        private static bool _require_resize;
-        private static bool _start_resizing;
-        private static object _resize_thread_lock;
+        private static Vector4 clearColor;
+        private static Vector2 futurePos;
+        private static Vector2 futureSize;
+        private static int myFps;
+        private static bool isVisible;
+        private static bool isClosed;
+        private static bool requireResize;
+        private static bool startResizing;
+        private static object resizeLock;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Overlay"/> class.
+        /// </summary>
+        /// <param name="x">
+        /// x position of the overlay
+        /// </param>
+        /// <param name="y">
+        /// y position of the overlay
+        /// </param>
+        /// <param name="width">
+        /// width of the overlay
+        /// </param>
+        /// <param name="height">
+        /// height of the Overlay
+        /// </param>
+        /// <param name="fps">
+        /// fps of the overlay
+        /// </param>
         public Overlay(int x, int y, int width, int height, int fps)
         {
-            _clearColor = new Vector4(0.00f, 0.00f, 0.00f, 0.00f);
-            _fps = fps;
-            _is_visible = true;
-            _is_closed = false;
-            // Stuff related to (thread safe) resizing of SDL2Window
-            _require_resize = false;
-            _start_resizing = false;
-            _resize_thread_lock = new object();
-            _future_size = Vector2.Zero;
-            _future_pos = Vector2.Zero;
+            clearColor = new Vector4(0.00f, 0.00f, 0.00f, 0.00f);
+            myFps = fps;
+            isVisible = true;
+            isClosed = false;
 
-            _window = new Sdl2Window("Overlay", x, x, width, height, SDL_WindowFlags.Borderless | SDL_WindowFlags.AlwaysOnTop | SDL_WindowFlags.SkipTaskbar, true);
-            // TODO: Create a new branch for Non-Veldrid dependent version. Ideally, we can directly use SDL2Window.
-            _gd = VeldridStartup.CreateGraphicsDevice(_window, new GraphicsDeviceOptions(true, null, true), GraphicsBackend.Direct3D11);
-            NativeMethods.EnableTransparent(_window.Handle, new System.Drawing.Rectangle(_window.X , _window.Y, _window.Width, _window.Height));
-            _window.Resized += () =>
+            // Stuff related to (thread safe) resizing of SDL2Window
+            requireResize = false;
+            startResizing = false;
+            resizeLock = new object();
+            futureSize = Vector2.Zero;
+            futurePos = Vector2.Zero;
+
+            window = new Sdl2Window("Overlay", x, x, width, height, SDL_WindowFlags.Borderless | SDL_WindowFlags.AlwaysOnTop | SDL_WindowFlags.SkipTaskbar, true);
+            graphicsDevice = VeldridStartup.CreateGraphicsDevice(window, new GraphicsDeviceOptions(true, null, true), GraphicsBackend.Direct3D11);
+            NativeMethods.EnableTransparent(window.Handle, new System.Drawing.Rectangle(window.X , window.Y, window.Width, window.Height));
+            window.Resized += () =>
             {
-                _gd.MainSwapchain.Resize((uint)_window.Width, (uint)_window.Height);
-                _im_controller.WindowResized(_window.Width, _window.Height);
-                lock (_resize_thread_lock)
+                graphicsDevice.MainSwapchain.Resize((uint)window.Width, (uint)window.Height);
+                imController.WindowResized(window.Width, window.Height);
+                lock (resizeLock)
                 {
-                    _require_resize = false;
-                    _start_resizing = false;
+                    requireResize = false;
+                    startResizing = false;
                 }
             };
-            _window.Closed += () =>
+            window.Closed += () =>
             {
-                _is_closed = true;
+                isClosed = true;
             };
 
-            _cl = _gd.ResourceFactory.CreateCommandList();
-            _im_controller = new ImGuiController(_gd, _gd.MainSwapchain.Framebuffer.OutputDescription, _window.Width, _window.Height, _fps);
-            _ui_thread = new Thread(WhileLoop);
-            _hook_controller = new HookController(_window.X, _window.Y);
+            commandList = graphicsDevice.ResourceFactory.CreateCommandList();
+            imController = new ImGuiController(graphicsDevice, graphicsDevice.MainSwapchain.Framebuffer.OutputDescription, window.Width, window.Height, myFps);
+            uiThread = new Thread(this.WhileLoop);
+            hookController = new HookController(window.X, window.Y);
         }
 
+        /// <summary>
+        /// To submit ImGui code for generating the UI.
+        /// </summary>
+        public event EventHandler SubmitUI;
+
+        /// <summary>
+        /// Starts the overlay
+        /// </summary>
         public void Run()
         {
-            _ui_thread.Start();
-            _hook_controller.EnableHooks();
+            uiThread.Start();
+            hookController.EnableHooks();
             NativeMethods.HideConsoleWindow();
             Application.Run(new ApplicationContext());
         }
 
+        /// <summary>
+        /// Free all resources acquired by the overlay
+        /// </summary>
         public void Dispose()
         {
-            _is_visible = false;
-            _window.Close();
-            while (!_is_closed)
+            isVisible = false;
+            window.Close();
+            while (!isClosed)
             {
                 Thread.Sleep(10);
             }
 
-            _ui_thread.Join();
-            _gd.WaitForIdle();
-            _im_controller.Dispose();
-            _cl.Dispose();
-            _gd.Dispose();
-            _hook_controller.Dispose();
+            uiThread.Join();
+            graphicsDevice.WaitForIdle();
+            imController.Dispose();
+            commandList.Dispose();
+            graphicsDevice.Dispose();
+            hookController.Dispose();
             NativeMethods.ShowConsoleWindow();
-            _resize_thread_lock = null;
-            SubmitUI = null;
+            resizeLock = null;
+            this.SubmitUI = null;
             Console.WriteLine("All Overlay resources are cleared.");
             Application.Exit();
         }
 
-        public void ResizeWindow(int x, int y, int width, int height)
+        /// <summary>
+        /// Resizes the overlay
+        /// </summary>
+        /// <param name="x">
+        /// x axis of the overlay
+        /// </param>
+        /// <param name="y">
+        /// y axis of the overlay
+        /// </param>
+        /// <param name="width">
+        /// width of the overlay
+        /// </param>
+        /// <param name="height">
+        /// height of the overlay
+        /// </param>
+        public void Resize(int x, int y, int width, int height)
         {
-            _future_pos.X = x;
-            _future_pos.Y = y;
-            _future_size.X = width;
-            _future_size.Y = height;
+            futurePos.X = x;
+            futurePos.Y = y;
+            futureSize.X = width;
+            futureSize.Y = height;
+
             // TODO: move following two lines to _window.Moved
-            _hook_controller.UpdateWindowPosition(x, y);
-            NativeMethods.EnableTransparent(_window.Handle, new System.Drawing.Rectangle(x, y, width, height));
-            _require_resize = true;
+            hookController.UpdateWindowPosition(x, y);
+            NativeMethods.EnableTransparent(window.Handle, new System.Drawing.Rectangle(x, y, width, height));
+            requireResize = true;
         }
 
-        public void ShowWindow()
+        /// <summary>
+        /// Shows the overlay
+        /// </summary>
+        public void Show()
         {
-            _hook_controller.ResumeHooks();
-            _is_visible = true;
+            hookController.ResumeHooks();
+            isVisible = true;
         }
 
-        public void HideWindow()
+        /// <summary>
+        /// hides the overlay
+        /// </summary>
+        public void Hide()
         {
             // TODO: Improve this function to do the following
             //    1: Hide SDL2Window
             //    2: Pause WhileLoop
             // This will ensure we don't waste CPU/GPU resources while window is hidden
-            _hook_controller.PauseHooks();
-            _is_visible = false;
+            hookController.PauseHooks();
+            isVisible = false;
         }
 
         private void WhileLoop()
         {
-            while (_window.Exists)
+            while (window.Exists)
             {
-                lock (_resize_thread_lock)
+                lock (resizeLock)
                 {
-                    if (_require_resize)
+                    if (requireResize)
                     {
-                        if (!_start_resizing)
+                        if (!startResizing)
                         {
-                            Sdl2Native.SDL_SetWindowPosition(_window.SdlWindowHandle, (int)_future_pos.X, (int)_future_pos.Y);
-                            Sdl2Native.SDL_SetWindowSize(_window.SdlWindowHandle, (int)_future_size.X, (int)_future_size.Y);
-                            _start_resizing = true;
+                            Sdl2Native.SDL_SetWindowPosition(window.SdlWindowHandle, (int)futurePos.X, (int)futurePos.Y);
+                            Sdl2Native.SDL_SetWindowSize(window.SdlWindowHandle, (int)futureSize.X, (int)futureSize.Y);
+                            startResizing = true;
                         }
                         continue;
                     }
                 }
 
-                if (!_window.Exists)
+                if (!window.Exists)
                 {
                     break;
                 }
 
-                _im_controller.InitlizeFrame(1f / _fps);
+                imController.InitlizeFrame(1f / myFps);
 
-                if (_is_visible)
+                if (isVisible)
                 {
-                    SubmitUI?.Invoke(this, new EventArgs());
+                    this.SubmitUI?.Invoke(this, new EventArgs());
                 }
 
-                _cl.Begin();
-                _cl.SetFramebuffer(_gd.MainSwapchain.Framebuffer);
-                _cl.ClearColorTarget(0, new RgbaFloat(_clearColor.X, _clearColor.Y, _clearColor.Z, _clearColor.W));
-                _im_controller.Render(_gd, _cl);
-                _cl.End();
-                _gd.SubmitCommands(_cl);
-                _gd.SwapBuffers(_gd.MainSwapchain);
+                commandList.Begin();
+                commandList.SetFramebuffer(graphicsDevice.MainSwapchain.Framebuffer);
+                commandList.ClearColorTarget(0, new RgbaFloat(clearColor.X, clearColor.Y, clearColor.Z, clearColor.W));
+                imController.Render(graphicsDevice, commandList);
+                commandList.End();
+                graphicsDevice.SubmitCommands(commandList);
+                graphicsDevice.SwapBuffers(graphicsDevice.MainSwapchain);
             }
         }
     }
