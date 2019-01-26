@@ -41,12 +41,12 @@
         public static void DistroyDemo()
         {
             Thread.Sleep(RunFor * 1000);
-            //demo.ResizeWindow(0, 0, 2560, 1440);
-            //Thread.Sleep(10000);
-            //demo.HideWindow();
-            //Thread.Sleep(10000);
-            //demo.ShowWindow();
-            //Thread.Sleep(10000);
+            demo.Resize(200, 200, 1024, 1024);
+            Thread.Sleep(RunFor * 1000);
+            demo.Hide();
+            Thread.Sleep(RunFor * 1000);
+            demo.Show();
+            Thread.Sleep(RunFor * 1000);
             demo.Dispose();
         }
     }
