@@ -26,11 +26,12 @@ namespace ClickableTransparentOverlay
 
         // UI State
         private static Vector4 clearColor;
+        private static int myFps;
+        private static bool isClosed;
+
+        // For Resizing SDL2Window
         private static Vector2 futurePos;
         private static Vector2 futureSize;
-        private static int myFps;
-        private static bool isVisible;
-        private static bool isClosed;
         private static bool requireResize;
 
         /// <summary>
@@ -55,7 +56,6 @@ namespace ClickableTransparentOverlay
         {
             clearColor = new Vector4(0.00f, 0.00f, 0.00f, 0.00f);
             myFps = fps;
-            isVisible = true;
             isClosed = false;
 
             // Stuff related to (thread safe) resizing of SDL2Window
@@ -135,7 +135,7 @@ namespace ClickableTransparentOverlay
         public void Show()
         {
             hookController.ResumeHooks();
-            isVisible = true;
+            window.Visible = true;
         }
 
         /// <summary>
@@ -143,12 +143,8 @@ namespace ClickableTransparentOverlay
         /// </summary>
         public void Hide()
         {
-            // TODO: Improve this function to do the following
-            //    1: Hide SDL2Window
-            //    2: Pause WhileLoop
-            // This will ensure we don't waste CPU/GPU resources while window is hidden
             hookController.PauseHooks();
-            isVisible = false;
+            window.Visible = false;
         }
 
         /// <summary>
@@ -156,7 +152,6 @@ namespace ClickableTransparentOverlay
         /// </summary>
         public void Dispose()
         {
-            isVisible = false;
             window.Close();
             while (!isClosed)
             {
@@ -192,6 +187,8 @@ namespace ClickableTransparentOverlay
 
                 if (!window.Visible)
                 {
+                    window.PumpEvents();
+                    Thread.Sleep(10);
                     continue;
                 }
 
@@ -201,12 +198,7 @@ namespace ClickableTransparentOverlay
                 }
 
                 imController.InitlizeFrame(1f / myFps);
-
-                if (isVisible)
-                {
-                    this.SubmitUI?.Invoke(this, new EventArgs());
-                }
-
+                this.SubmitUI?.Invoke(this, new EventArgs());
                 commandList.Begin();
                 commandList.SetFramebuffer(graphicsDevice.MainSwapchain.Framebuffer);
                 commandList.ClearColorTarget(0, new RgbaFloat(clearColor.X, clearColor.Y, clearColor.Z, clearColor.W));
