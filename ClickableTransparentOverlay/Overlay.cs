@@ -32,8 +32,6 @@ namespace ClickableTransparentOverlay
         private static bool isVisible;
         private static bool isClosed;
         private static bool requireResize;
-        private static bool startResizing;
-        private static object resizeLock;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Overlay"/> class.
@@ -62,23 +60,19 @@ namespace ClickableTransparentOverlay
 
             // Stuff related to (thread safe) resizing of SDL2Window
             requireResize = false;
-            startResizing = false;
-            resizeLock = new object();
             futureSize = Vector2.Zero;
             futurePos = Vector2.Zero;
 
-            window = new Sdl2Window("Overlay", x, x, width, height, SDL_WindowFlags.Borderless | SDL_WindowFlags.AlwaysOnTop | SDL_WindowFlags.SkipTaskbar, true);
+            window = new Sdl2Window("Overlay", x, y, width, height, SDL_WindowFlags.Borderless | SDL_WindowFlags.AlwaysOnTop | SDL_WindowFlags.SkipTaskbar, false);
             graphicsDevice = VeldridStartup.CreateGraphicsDevice(window, new GraphicsDeviceOptions(true, null, true), GraphicsBackend.Direct3D11);
             NativeMethods.EnableTransparent(window.Handle, new System.Drawing.Rectangle(window.X, window.Y, window.Width, window.Height));
             window.Resized += () =>
             {
                 graphicsDevice.MainSwapchain.Resize((uint)window.Width, (uint)window.Height);
                 imController.WindowResized(window.Width, window.Height);
-                lock (resizeLock)
-                {
-                    requireResize = false;
-                    startResizing = false;
-                }
+                futureSize = Vector2.Zero;
+                futurePos = Vector2.Zero;
+                requireResize = false;
             };
             window.Closed += () =>
             {
@@ -105,31 +99,6 @@ namespace ClickableTransparentOverlay
             hookController.EnableHooks();
             NativeMethods.HideConsoleWindow();
             Application.Run(new ApplicationContext());
-        }
-
-        /// <summary>
-        /// Free all resources acquired by the overlay
-        /// </summary>
-        public void Dispose()
-        {
-            isVisible = false;
-            window.Close();
-            while (!isClosed)
-            {
-                Thread.Sleep(10);
-            }
-
-            uiThread.Join();
-            graphicsDevice.WaitForIdle();
-            imController.Dispose();
-            commandList.Dispose();
-            graphicsDevice.Dispose();
-            hookController.Dispose();
-            NativeMethods.ShowConsoleWindow();
-            resizeLock = null;
-            this.SubmitUI = null;
-            Console.WriteLine("All Overlay resources are cleared.");
-            Application.Exit();
         }
 
         /// <summary>
@@ -182,23 +151,48 @@ namespace ClickableTransparentOverlay
             isVisible = false;
         }
 
+        /// <summary>
+        /// Free all resources acquired by the overlay
+        /// </summary>
+        public void Dispose()
+        {
+            isVisible = false;
+            window.Close();
+            while (!isClosed)
+            {
+                Thread.Sleep(10);
+            }
+
+            uiThread.Join();
+            graphicsDevice.WaitForIdle();
+            imController.Dispose();
+            commandList.Dispose();
+            graphicsDevice.Dispose();
+            hookController.Dispose();
+            NativeMethods.ShowConsoleWindow();
+            this.SubmitUI = null;
+            Console.WriteLine("All Overlay resources are cleared.");
+            Application.Exit();
+        }
+
+        /// <summary>
+        /// Infinite While Loop to render the ImGui.
+        /// </summary>
         private void WhileLoop()
         {
             while (window.Exists)
             {
-                lock (resizeLock)
+                if (requireResize)
                 {
-                    if (requireResize)
-                    {
-                        if (!startResizing)
-                        {
-                            Sdl2Native.SDL_SetWindowPosition(window.SdlWindowHandle, (int)futurePos.X, (int)futurePos.Y);
-                            Sdl2Native.SDL_SetWindowSize(window.SdlWindowHandle, (int)futureSize.X, (int)futureSize.Y);
-                            startResizing = true;
-                        }
+                    Sdl2Native.SDL_SetWindowPosition(window.SdlWindowHandle, (int)futurePos.X, (int)futurePos.Y);
+                    Sdl2Native.SDL_SetWindowSize(window.SdlWindowHandle, (int)futureSize.X, (int)futureSize.Y);
+                    window.PumpEvents();
+                    continue;
+                }
 
-                        continue;
-                    }
+                if (!window.Visible)
+                {
+                    continue;
                 }
 
                 if (!window.Exists)
