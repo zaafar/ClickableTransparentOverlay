@@ -7,7 +7,7 @@
     <ProjectGuid>{370E1945-EF74-4618-A2DE-B5796AC3093E}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <RootNamespace>DriverProgram</RootNamespace>
-    <AssemblyName>ImGuiDemo</AssemblyName>
+    <AssemblyName>OverlayDemo</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
