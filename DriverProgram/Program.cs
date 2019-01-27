@@ -2,52 +2,66 @@
 {
     using ClickableTransparentOverlay;
     using ImGuiNET;
-    using System;
     using System.Threading;
 
     class Program
     {
-        private static Overlay demo;
-        private static int Width = 2560;
-        private static int Height = 1440;
+        private static bool isRunning = true;
         private static int Fps = 144;
-        private static int RunFor = 10;
+        private static int[] resizeHelper = new int[4] { 0, 0, 2560, 1440 };
+        private static int seconds = 5;
+        private static Overlay overlay = new Overlay(0, 0, 2560, 1440, Fps, false);
+
+        private static void MainApplicationLogic()
+        {
+            while (isRunning)
+            {
+                Thread.Sleep(10);
+            }
+            overlay.Dispose();
+        }
+
         static void Main(string[] args)
         {
-            Console.Write("Enter Screen Width:");
-            Width = Convert.ToInt32(Console.ReadLine());
-
-            Console.Write("Enter Screen Height:");
-            Height = Convert.ToInt32(Console.ReadLine());
-
-            Console.Write("Enter Monitor Max FPS:");
-            Fps = Convert.ToInt32(Console.ReadLine());
-
-            Console.Write("You want to run this demo for X (seconds):");
-            RunFor = Convert.ToInt32(Console.ReadLine());
-
-            var EndDemo = new Thread(DistroyDemo);
-            EndDemo.Start();
-            StartDemo();
+            overlay.SubmitUI += RenderUi;
+            Thread p = new Thread(MainApplicationLogic);
+            p.Start();
+            overlay.Run();
+            p.Join();
         }
 
-        public static void StartDemo()
+        private static void RenderUi(object sender, System.EventArgs e)
         {
-            demo = new Overlay(0, 0, Width, Height, Fps);
-            demo.SubmitUI += (object sender, EventArgs e) => ImGui.ShowDemoWindow();
-            demo.Run();
-        }
+            if (isRunning)
+            {
+                ImGui.ShowDemoWindow(ref isRunning);
+            }
 
-        public static void DistroyDemo()
-        {
-            Thread.Sleep(RunFor * 1000);
-            demo.Resize(200, 200, 1024, 1024);
-            Thread.Sleep(RunFor * 1000);
-            demo.Hide();
-            Thread.Sleep(RunFor * 1000);
-            demo.Show();
-            Thread.Sleep(RunFor * 1000);
-            demo.Dispose();
+            ImGui.Begin("SDL2Window Config", ImGuiWindowFlags.NoResize | ImGuiWindowFlags.AlwaysAutoResize);
+            ImGui.Text($"Current FPS: {Fps}");
+            if (ImGui.SliderInt("Set FPS", ref Fps, 30, 144))
+            {
+                overlay.SetFps(Fps);
+            }
+
+            ImGui.NewLine();
+            ImGui.Text($"Current Position: {resizeHelper[0]}, {resizeHelper[1]}");
+            ImGui.Text($"Current Size:  {resizeHelper[2]}, {resizeHelper[3]}");
+            ImGui.SliderInt4("Set Position & Size", ref resizeHelper[0], 0, 3840);
+            if (ImGui.Button("Resize"))
+            {
+                overlay.Resize(resizeHelper[0], resizeHelper[1], resizeHelper[2], resizeHelper[3]);
+            }
+
+            ImGui.NewLine();
+            ImGui.DragInt("Set Hidden Time", ref seconds);
+            if (ImGui.Button("Hide for X Seconds"))
+            {
+                new Thread(() => { Thread.Sleep(seconds * 1000); overlay.Show(); }).Start();
+                overlay.Hide();
+            }
+
+            ImGui.End();
         }
     }
 }

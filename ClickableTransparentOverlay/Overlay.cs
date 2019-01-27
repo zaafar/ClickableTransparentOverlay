@@ -33,6 +33,7 @@ namespace ClickableTransparentOverlay
         private static Vector2 futurePos;
         private static Vector2 futureSize;
         private static bool requireResize;
+        private static bool debugMode;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Overlay"/> class.
@@ -52,11 +53,15 @@ namespace ClickableTransparentOverlay
         /// <param name="fps">
         /// fps of the overlay
         /// </param>
-        public Overlay(int x, int y, int width, int height, int fps)
+        /// <param name="debug">
+        /// In this mode, overlay will not hide the Console
+        /// </param>
+        public Overlay(int x, int y, int width, int height, int fps, bool debug)
         {
             clearColor = new Vector4(0.00f, 0.00f, 0.00f, 0.00f);
             myFps = fps;
             isClosed = false;
+            debugMode = debug;
 
             // Stuff related to (thread safe) resizing of SDL2Window
             requireResize = false;
@@ -97,8 +102,23 @@ namespace ClickableTransparentOverlay
         {
             uiThread.Start();
             hookController.EnableHooks();
-            NativeMethods.HideConsoleWindow();
+            if (!debugMode)
+            {
+                NativeMethods.HideConsoleWindow();
+            }
+
             Application.Run(new ApplicationContext());
+        }
+
+        /// <summary>
+        /// Set the overlay FPS.
+        /// </summary>
+        /// <param name="fps">
+        /// FPS to set
+        /// </param>
+        public void SetFps(int fps)
+        {
+            myFps = fps;
         }
 
         /// <summary>
