@@ -7,6 +7,7 @@
     class Program
     {
         private static bool isRunning = true;
+        private static bool showImGuiDemo = false;
         private static int Fps = 144;
         private static int[] resizeHelper = new int[4] { 0, 0, 2560, 1440 };
         private static int seconds = 5;
@@ -32,36 +33,44 @@
 
         private static void RenderUi(object sender, System.EventArgs e)
         {
-            if (isRunning)
+            if (showImGuiDemo)
             {
-                ImGui.ShowDemoWindow(ref isRunning);
+                ImGui.ShowDemoWindow(ref showImGuiDemo);
             }
 
-            ImGui.Begin("SDL2Window Config", ImGuiWindowFlags.NoResize | ImGuiWindowFlags.AlwaysAutoResize);
-            ImGui.Text($"Current FPS: {Fps}");
-            if (ImGui.SliderInt("Set FPS", ref Fps, 30, 144))
+            if(ImGui.Begin("Overlay Config", ref isRunning, ImGuiWindowFlags.NoResize | ImGuiWindowFlags.AlwaysAutoResize))
             {
-                overlay.SetFps(Fps);
-            }
+                ImGui.Text($"Current FPS: {Fps}");
+                if (ImGui.SliderInt("Set FPS", ref Fps, 30, 144))
+                {
+                    overlay.SetFps(Fps);
+                }
 
-            ImGui.NewLine();
-            ImGui.Text($"Current Position: {resizeHelper[0]}, {resizeHelper[1]}");
-            ImGui.Text($"Current Size:  {resizeHelper[2]}, {resizeHelper[3]}");
-            ImGui.SliderInt4("Set Position & Size", ref resizeHelper[0], 0, 3840);
-            if (ImGui.Button("Resize"))
-            {
-                overlay.Resize(resizeHelper[0], resizeHelper[1], resizeHelper[2], resizeHelper[3]);
-            }
+                ImGui.NewLine();
+                ImGui.Text($"Current Position: {resizeHelper[0]}, {resizeHelper[1]}");
+                ImGui.Text($"Current Size:  {resizeHelper[2]}, {resizeHelper[3]}");
+                ImGui.SliderInt4("Set Position & Size", ref resizeHelper[0], 0, 3840);
+                if (ImGui.Button("Resize"))
+                {
+                    overlay.Resize(resizeHelper[0], resizeHelper[1], resizeHelper[2], resizeHelper[3]);
+                }
 
-            ImGui.NewLine();
-            ImGui.DragInt("Set Hidden Time", ref seconds);
-            if (ImGui.Button("Hide for X Seconds"))
-            {
-                new Thread(() => { Thread.Sleep(seconds * 1000); overlay.Show(); }).Start();
-                overlay.Hide();
-            }
+                ImGui.NewLine();
+                ImGui.DragInt("Set Hidden Time", ref seconds);
+                if (ImGui.Button("Hide for X Seconds"))
+                {
+                    new Thread(() => { Thread.Sleep(seconds * 1000); overlay.Show(); }).Start();
+                    overlay.Hide();
+                }
 
-            ImGui.End();
+                ImGui.NewLine();
+                if(ImGui.Button("Show ImGui Demo"))
+                {
+                    showImGuiDemo = true;
+                }
+
+                ImGui.End();
+            }
         }
     }
 }
