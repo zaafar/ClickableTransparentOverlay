@@ -70,6 +70,8 @@ namespace ClickableTransparentOverlay
 
             window = new Sdl2Window("Overlay", x, y, width, height, SDL_WindowFlags.Borderless | SDL_WindowFlags.AlwaysOnTop | SDL_WindowFlags.SkipTaskbar, false);
             graphicsDevice = VeldridStartup.CreateGraphicsDevice(window, new GraphicsDeviceOptions(true, null, true), GraphicsBackend.Direct3D11);
+
+            // graphicsDevice = VeldridStartup.CreateDefaultD3D11GraphicsDevice(new GraphicsDeviceOptions(true, null, true), window);
             NativeMethods.EnableTransparent(window.Handle, new System.Drawing.Rectangle(window.X, window.Y, window.Width, window.Height));
             window.Resized += () =>
             {

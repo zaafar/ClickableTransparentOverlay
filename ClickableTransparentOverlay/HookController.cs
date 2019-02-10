@@ -246,7 +246,8 @@ namespace ClickableTransparentOverlay
                         // Ignoring Capital/NumLock key so Windows can use it.
                         // Ignoring Win/Super key so we can do Win+D or other stuff.
                         // Create a new issue on the repo if I miss any important key.
-                        if (!io.KeyAlt && e.KeyCode != Keys.Capital && e.KeyCode != Keys.NumLock && !io.KeySuper)
+                        if (!io.KeyAlt && e.KeyCode != Keys.Capital && e.KeyCode != Keys.NumLock && !io.KeySuper &&
+                            e.KeyCode != Keys.PrintScreen && e.KeyCode != Keys.Print)
                         {
                             e.Handled = true;
                         }
