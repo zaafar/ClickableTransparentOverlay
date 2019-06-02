@@ -93,14 +93,14 @@
     </Reference>
     <Reference Include="System.Windows.Forms" />
     <Reference Include="Microsoft.CSharp" />
-    <Reference Include="Veldrid, Version=4.5.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Veldrid.4.5.0\lib\netstandard2.0\Veldrid.dll</HintPath>
+    <Reference Include="Veldrid, Version=4.6.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Veldrid.4.6.1\lib\netstandard2.0\Veldrid.dll</HintPath>
     </Reference>
-    <Reference Include="Veldrid.SDL2, Version=4.5.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Veldrid.SDL2.4.5.0\lib\netstandard2.0\Veldrid.SDL2.dll</HintPath>
+    <Reference Include="Veldrid.SDL2, Version=4.6.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Veldrid.SDL2.4.6.1\lib\netstandard2.0\Veldrid.SDL2.dll</HintPath> 
     </Reference>
-    <Reference Include="Veldrid.StartupUtilities, Version=4.5.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Veldrid.StartupUtilities.4.5.0\lib\netstandard2.0\Veldrid.StartupUtilities.dll</HintPath>
+    <Reference Include="Veldrid.StartupUtilities, Version=4.6.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Veldrid.StartupUtilities.4.6.1\lib\netstandard2.0\Veldrid.StartupUtilities.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -126,12 +126,12 @@
     <Analyzer Include="..\packages\StyleCop.Analyzers.1.1.118\analyzers\dotnet\cs\StyleCop.Analyzers.dll" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <Import Project="..\packages\Veldrid.SDL2.4.5.0\build\net40\Veldrid.SDL2.targets" Condition="Exists('..\packages\Veldrid.SDL2.4.5.0\build\net40\Veldrid.SDL2.targets')" />
+  <Import Project="..\packages\Veldrid.SDL2.4.6.1\build\net40\Veldrid.SDL2.targets" Condition="Exists('..\packages\Veldrid.SDL2.4.6.1\build\net40\Veldrid.SDL2.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
-    <Error Condition="!Exists('..\packages\Veldrid.SDL2.4.5.0\build\net40\Veldrid.SDL2.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Veldrid.SDL2.4.5.0\build\net40\Veldrid.SDL2.targets'))" />
+    <Error Condition="!Exists('..\packages\Veldrid.SDL2.4.6.1\build\net40\Veldrid.SDL2.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Veldrid.SDL2.4.6.1\build\net40\Veldrid.SDL2.targets'))" />
   </Target>
   <PropertyGroup>
     <PostBuildEvent>
