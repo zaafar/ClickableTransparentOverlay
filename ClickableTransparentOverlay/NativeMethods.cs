@@ -86,7 +86,7 @@ namespace ClickableTransparentOverlay
                     left = rectangle.Left,
                     right = rectangle.Right,
                     top = rectangle.Top,
-                    bottom = rectangle.Bottom
+                    bottom = rectangle.Bottom,
                 };
                 return margins;
             }

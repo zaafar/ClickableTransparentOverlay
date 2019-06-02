@@ -13,7 +13,7 @@ namespace ClickableTransparentOverlay
     using Veldrid.StartupUtilities;
 
     /// <summary>
-    /// A class to create clickable transparent overlay
+    /// A class to create clickable transparent overlay.
     /// </summary>
     public class Overlay
     {
@@ -39,22 +39,22 @@ namespace ClickableTransparentOverlay
         /// Initializes a new instance of the <see cref="Overlay"/> class.
         /// </summary>
         /// <param name="x">
-        /// x position of the overlay
+        /// x position of the overlay.
         /// </param>
         /// <param name="y">
-        /// y position of the overlay
+        /// y position of the overlay.
         /// </param>
         /// <param name="width">
-        /// width of the overlay
+        /// width of the overlay.
         /// </param>
         /// <param name="height">
-        /// height of the Overlay
+        /// height of the Overlay.
         /// </param>
         /// <param name="fps">
-        /// fps of the overlay
+        /// fps of the overlay.
         /// </param>
         /// <param name="debug">
-        /// In this mode, overlay will not hide the Console
+        /// In this mode, overlay will not hide the Console.
         /// </param>
         public Overlay(int x, int y, int width, int height, int fps, bool debug)
         {
@@ -98,7 +98,7 @@ namespace ClickableTransparentOverlay
         public event EventHandler SubmitUI;
 
         /// <summary>
-        /// Starts the overlay
+        /// Starts the overlay.
         /// </summary>
         public void Run()
         {
@@ -116,7 +116,7 @@ namespace ClickableTransparentOverlay
         /// Set the overlay FPS.
         /// </summary>
         /// <param name="fps">
-        /// FPS to set
+        /// FPS to set.
         /// </param>
         public void SetFps(int fps)
         {
@@ -124,19 +124,19 @@ namespace ClickableTransparentOverlay
         }
 
         /// <summary>
-        /// Resizes the overlay
+        /// Resizes the overlay.
         /// </summary>
         /// <param name="x">
-        /// x axis of the overlay
+        /// x axis of the overlay.
         /// </param>
         /// <param name="y">
-        /// y axis of the overlay
+        /// y axis of the overlay.
         /// </param>
         /// <param name="width">
-        /// width of the overlay
+        /// width of the overlay.
         /// </param>
         /// <param name="height">
-        /// height of the overlay
+        /// height of the overlay.
         /// </param>
         public void Resize(int x, int y, int width, int height)
         {
@@ -152,7 +152,7 @@ namespace ClickableTransparentOverlay
         }
 
         /// <summary>
-        /// Shows the overlay
+        /// Shows the overlay.
         /// </summary>
         public void Show()
         {
@@ -161,7 +161,7 @@ namespace ClickableTransparentOverlay
         }
 
         /// <summary>
-        /// hides the overlay
+        /// hides the overlay.
         /// </summary>
         public void Hide()
         {
@@ -170,7 +170,7 @@ namespace ClickableTransparentOverlay
         }
 
         /// <summary>
-        /// Free all resources acquired by the overlay
+        /// Free all resources acquired by the overlay.
         /// </summary>
         public void Dispose()
         {

@@ -57,10 +57,10 @@ namespace ClickableTransparentOverlay
         /// Update transparent SDL2Window top left position.
         /// </summary>
         /// <param name="x">
-        /// X axis of the SDL2Window top left corner
+        /// X axis of the SDL2Window top left corner.
         /// </param>
         /// <param name="y">
-        /// Y axis of the SDL2Window top left corner
+        /// Y axis of the SDL2Window top left corner.
         /// </param>
         public void UpdateWindowPosition(int x, int y)
         {
@@ -85,7 +85,7 @@ namespace ClickableTransparentOverlay
         }
 
         /// <summary>
-        /// Dispose the resources acquired by this class
+        /// Dispose the resources acquired by this class.
         /// </summary>
         public void Dispose()
         {
