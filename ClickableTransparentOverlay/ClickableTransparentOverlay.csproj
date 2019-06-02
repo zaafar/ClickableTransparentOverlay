@@ -111,7 +111,6 @@
     <Compile Include="NativeMethods.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="app.config" />
     <None Include="packages.config" />
     <EmbeddedResource Include="Shaders\HLSL\imgui-vertex.hlsl.bytes" LogicalName="imgui-vertex.hlsl.bytes" />
     <EmbeddedResource Include="Shaders\HLSL\imgui-frag.hlsl.bytes" LogicalName="imgui-frag.hlsl.bytes" />
