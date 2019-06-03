@@ -369,6 +369,7 @@ namespace ClickableTransparentOverlay
             this.textureLayout.Dispose();
             this.pipeline.Dispose();
             this.mainResourceSet.Dispose();
+            this.fontTextureResourceSet.Dispose();
 
             foreach (IDisposable resource in this.ownedResources)
             {
