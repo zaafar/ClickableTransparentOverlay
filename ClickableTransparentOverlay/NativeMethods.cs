@@ -79,7 +79,7 @@ namespace ClickableTransparentOverlay
             private int top;
             private int bottom;
 
-            public static Margins FromRectangle(System.Drawing.Rectangle rectangle)
+            public static Margins FromRectangle(Rectangle rectangle)
             {
                 var margins = new Margins
                 {

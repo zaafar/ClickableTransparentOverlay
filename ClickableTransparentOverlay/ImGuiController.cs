@@ -370,11 +370,7 @@ namespace ClickableTransparentOverlay
             this.pipeline.Dispose();
             this.mainResourceSet.Dispose();
             this.fontTextureResourceSet.Dispose();
-
-            foreach (IDisposable resource in this.ownedResources)
-            {
-                resource.Dispose();
-            }
+            this.ClearCachedImageResources();
         }
 
         /// <summary>
