@@ -245,6 +245,7 @@ namespace ClickableTransparentOverlay
                     continue;
                 }
 
+                hookController.PopMessages();
                 if (!window.Exists)
                 {
                     break;

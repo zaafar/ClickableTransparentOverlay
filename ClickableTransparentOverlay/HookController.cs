@@ -4,17 +4,24 @@
 
 namespace ClickableTransparentOverlay
 {
+    using System;
+    using System.Collections.Generic;
     using System.Numerics;
     using System.Windows.Forms;
     using Gma.System.MouseKeyHook;
     using ImGuiNET;
 
     /// <summary>
-    /// This class Hooks the Global Window Mouse/Keyboard events
-    /// and pass them into ImGui Overlay.
+    /// This class Hooks the Global Window Keyboard/Mouse events
+    /// and pass them into the ImGui Overlay.
+    ///
+    /// NOTE: This class might miss/skip a Keyboard/Mouse event
+    /// if ImGui render function takes a lot of time. Report on GitHub
+    /// if that happens.
     /// </summary>
     public class HookController
     {
+        private readonly Stack<HookControllerMessage> messages;
         private IKeyboardMouseEvents myHook;
         private bool enable;
         private int windowX;
@@ -31,10 +38,21 @@ namespace ClickableTransparentOverlay
         /// </param>
         public HookController(int x, int y)
         {
+            this.messages = new Stack<HookControllerMessage>();
             this.windowX = x;
             this.windowY = y;
             this.enable = true;
             this.myHook = Hook.GlobalEvents();
+        }
+
+        private enum HookControllerMessageType
+        {
+            MouseUpDown,
+            MouseMove,
+            MouseWheel,
+            KeyUp,
+            KeyDown,
+            KeyPress,
         }
 
         /// <summary>
@@ -101,32 +119,89 @@ namespace ClickableTransparentOverlay
             this.myHook.Dispose();
         }
 
-        private void MouseButtonFunction(MouseEventExtArgs e, bool isDownEvent)
+        /// <summary>
+        /// Tells the HookController if the ImGui is ready to accept keyboard/mouse messages.
+        /// </summary>
+        public void PopMessages()
+        {
+            int counter = 0;
+            int maxCounter = 10;
+            while (counter < maxCounter && this.messages.Count > 0)
+            {
+                var message = this.messages.Pop();
+                switch (message.Type)
+                {
+                    case HookControllerMessageType.MouseUpDown:
+                        this.ProcessMouseUpDown((MouseEventExtArgs)message.E, message.MiscArg, true);
+                        break;
+                    case HookControllerMessageType.MouseMove:
+                        this.ProcessMouseMove((MouseEventArgs)message.E, true);
+                        break;
+                    case HookControllerMessageType.MouseWheel:
+                        this.ProcessMouseWheel((MouseEventExtArgs)message.E, true);
+                        break;
+                    case HookControllerMessageType.KeyUp:
+                        this.ProcessKeyUp((KeyEventArgs)message.E, true);
+                        break;
+                    case HookControllerMessageType.KeyDown:
+                        this.ProcessKeyDown((KeyEventArgs)message.E, true);
+                        break;
+                    case HookControllerMessageType.KeyPress:
+                        this.ProcessKeyPress((KeyPressEventArgs)message.E, true);
+                        break;
+                    default:
+                        break;
+                }
+
+                counter++;
+            }
+        }
+
+        private void PushMessage(HookControllerMessageType type, EventArgs e, bool miscArg = false)
+        {
+            var message = new HookControllerMessage()
+            {
+                Type = type,
+                E = e,
+                MiscArg = miscArg,
+            };
+
+            this.messages.Push(message);
+        }
+
+        private void ProcessMouseUpDown(MouseEventExtArgs e, bool isDownEvent, bool shouldSendToImGui)
         {
             ImGuiIOPtr io = ImGui.GetIO();
-            switch (e.Button)
+            if (shouldSendToImGui)
             {
-                case MouseButtons.Left:
-                    io.MouseDown[0] = isDownEvent;
-                    break;
-                case MouseButtons.Right:
-                    io.MouseDown[1] = isDownEvent;
-                    break;
-                case MouseButtons.Middle:
-                    io.MouseDown[2] = isDownEvent;
-                    break;
-                case MouseButtons.XButton1:
-                    io.MouseDown[3] = isDownEvent;
-                    break;
-                case MouseButtons.XButton2:
-                    io.MouseDown[4] = isDownEvent;
-                    break;
-                case MouseButtons.None:
-                    // TODO: Find out what does this None mean
-                    break;
-                default:
-                    // TODO: Make a Logger for the whole Overlay
-                    break;
+                switch (e.Button)
+                {
+                    case MouseButtons.Left:
+                        io.MouseDown[0] = isDownEvent;
+                        break;
+                    case MouseButtons.Right:
+                        io.MouseDown[1] = isDownEvent;
+                        break;
+                    case MouseButtons.Middle:
+                        io.MouseDown[2] = isDownEvent;
+                        break;
+                    case MouseButtons.XButton1:
+                        io.MouseDown[3] = isDownEvent;
+                        break;
+                    case MouseButtons.XButton2:
+                        io.MouseDown[4] = isDownEvent;
+                        break;
+                    case MouseButtons.None:
+                        // TODO: Find out what does this None mean
+                        break;
+                    default:
+                        // TODO: Make a Logger for the whole Overlay
+                        break;
+                }
+            }
+            else
+            {
+                this.PushMessage(HookControllerMessageType.MouseUpDown, e, isDownEvent);
             }
 
             if (io.WantCaptureMouse)
@@ -135,110 +210,124 @@ namespace ClickableTransparentOverlay
             }
         }
 
-        private void HookMouseUpExt(object sender, MouseEventExtArgs e)
+        private void ProcessMouseMove(MouseEventArgs e, bool shouldSendToImGui)
         {
-            if (this.enable)
+            if (shouldSendToImGui)
             {
-                this.MouseButtonFunction(e, false);
+                ImGuiIOPtr io = ImGui.GetIO();
+                io.MousePos = new Vector2(e.X - this.windowX, e.Y - this.windowY);
+
+                // TODO: Show ImGUI Cursor/Hide ImGui Cursor
+                //     ImGui.GetIO().MouseDrawCursor = true;
+                //     Window32 API ShowCursor(false)
+            }
+            else
+            {
+                this.PushMessage(HookControllerMessageType.MouseMove, e);
             }
         }
 
-        private void HookMouseDownExt(object sender, MouseEventExtArgs e)
+        private void ProcessMouseWheel(MouseEventExtArgs e, bool shouldSendToImGui)
         {
-            if (this.enable)
-            {
-                this.MouseButtonFunction(e, true);
-            }
-        }
-
-        private void HookMouseMove(object sender, MouseEventArgs e)
-        {
-            if (!this.enable)
-            {
-                return;
-            }
-
-            ImGuiIOPtr io = ImGui.GetIO();
-            io.MousePos = new Vector2(e.X - this.windowX, e.Y - this.windowY);
-
-            // TODO: Show ImGUI Cursor/Hide ImGui Cursor
-            //     ImGui.GetIO().MouseDrawCursor = true;
-            //     Window32 API ShowCursor(false)
-        }
-
-        private void HookMouseWheelExt(object sender, MouseEventExtArgs e)
-        {
-            if (!this.enable)
-            {
-                return;
-            }
-
             ImGuiIOPtr io = ImGui.GetIO();
             if (io.WantCaptureMouse)
             {
-                io.MouseWheel = e.Delta / SystemInformation.MouseWheelScrollDelta;
+                if (shouldSendToImGui)
+                {
+                    io.MouseWheel = e.Delta / SystemInformation.MouseWheelScrollDelta;
+                }
+                else
+                {
+                    this.PushMessage(HookControllerMessageType.MouseWheel, e);
+                }
+
                 e.Handled = true;
             }
         }
 
-        private void HookKeyUp(object sender, KeyEventArgs e)
+        private void ProcessKeyUp(KeyEventArgs e, bool shouldSendToImGui)
         {
-            var io = ImGui.GetIO();
-            io.KeysDown[e.KeyValue] = false;
-
-            switch (e.KeyCode)
+            if (shouldSendToImGui)
             {
-                case Keys.LWin:
-                case Keys.RWin:
-                    io.KeySuper = false;
-                    break;
-                case Keys.LControlKey:
-                case Keys.RControlKey:
-                    io.KeyCtrl = false;
-                    break;
-                case Keys.LMenu:
-                case Keys.RMenu:
-                    io.KeyAlt = false;
-                    break;
-                case Keys.LShiftKey:
-                case Keys.RShiftKey:
-                    io.KeyShift = false;
-                    break;
-                default:
-                    break;
-            }
-        }
-
-        private void HookKeyDown(object sender, KeyEventArgs e)
-        {
-            if (!this.enable)
-            {
-                return;
-            }
-
-            var io = ImGui.GetIO();
-            if (io.WantCaptureKeyboard)
-            {
-                io.KeysDown[e.KeyValue] = true;
+                var io = ImGui.GetIO();
+                io.KeysDown[e.KeyValue] = false;
 
                 switch (e.KeyCode)
                 {
                     case Keys.LWin:
                     case Keys.RWin:
-                        io.KeySuper = true;
+                        io.KeySuper = false;
                         break;
                     case Keys.LControlKey:
                     case Keys.RControlKey:
-                        io.KeyCtrl = true;
+                        io.KeyCtrl = false;
+                        break;
+                    case Keys.LMenu:
+                    case Keys.RMenu:
+                        io.KeyAlt = false;
+                        break;
+                    case Keys.LShiftKey:
+                    case Keys.RShiftKey:
+                        io.KeyShift = false;
+                        break;
+                    default:
+                        break;
+                }
+            }
+            else
+            {
+                this.PushMessage(HookControllerMessageType.KeyUp, e);
+            }
+        }
+
+        private void ProcessKeyDown(KeyEventArgs e, bool shouldSendToImGui)
+        {
+            var io = ImGui.GetIO();
+            if (io.WantCaptureKeyboard)
+            {
+                if (shouldSendToImGui)
+                {
+                    io.KeysDown[e.KeyValue] = true;
+                }
+                else
+                {
+                    this.PushMessage(HookControllerMessageType.KeyDown, e);
+                }
+
+                switch (e.KeyCode)
+                {
+                    case Keys.LWin:
+                    case Keys.RWin:
+                        if (shouldSendToImGui)
+                        {
+                            io.KeySuper = true;
+                        }
+
+                        break;
+                    case Keys.LControlKey:
+                    case Keys.RControlKey:
+                        if (shouldSendToImGui)
+                        {
+                            io.KeyCtrl = true;
+                        }
+
                         e.Handled = true;
                         break;
                     case Keys.LMenu: // LAlt is LMenu
                     case Keys.RMenu: // RAlt is RMenu
-                        io.KeyAlt = true;
+                        if (shouldSendToImGui)
+                        {
+                            io.KeyAlt = true;
+                        }
+
                         break;
                     case Keys.LShiftKey:
                     case Keys.RShiftKey:
-                        io.KeyShift = true;
+                        if (shouldSendToImGui)
+                        {
+                            io.KeyShift = true;
+                        }
+
                         break;
                     default:
                         // Ignoring ALT key so we can do ALT+TAB or ALT+F4 etc.
@@ -257,13 +346,8 @@ namespace ClickableTransparentOverlay
             }
         }
 
-        private void HookKeyPress(object sender, KeyPressEventArgs e)
+        private void ProcessKeyPress(KeyPressEventArgs e, bool shouldSendToImGui)
         {
-            if (!this.enable)
-            {
-                return;
-            }
-
             var io = ImGui.GetIO();
 
             // Ignoring Win/Super key so we can do Win+D or other stuff
@@ -276,9 +360,87 @@ namespace ClickableTransparentOverlay
 
             if (io.WantTextInput || io.WantCaptureKeyboard)
             {
-                io.AddInputCharacter(e.KeyChar);
+                if (shouldSendToImGui)
+                {
+                    io.AddInputCharacter(e.KeyChar);
+                }
+                else
+                {
+                    this.PushMessage(HookControllerMessageType.KeyPress, e);
+                }
+
                 e.Handled = true;
             }
+        }
+
+        private void HookMouseUpExt(object sender, MouseEventExtArgs e)
+        {
+            if (this.enable)
+            {
+                this.ProcessMouseUpDown(e, false, false);
+            }
+        }
+
+        private void HookMouseDownExt(object sender, MouseEventExtArgs e)
+        {
+            if (this.enable)
+            {
+                this.ProcessMouseUpDown(e, true, false);
+            }
+        }
+
+        private void HookMouseMove(object sender, MouseEventArgs e)
+        {
+            if (!this.enable)
+            {
+                return;
+            }
+
+            this.ProcessMouseMove(e, false);
+        }
+
+        private void HookMouseWheelExt(object sender, MouseEventExtArgs e)
+        {
+            if (!this.enable)
+            {
+                return;
+            }
+
+            this.ProcessMouseWheel(e, false);
+        }
+
+        private void HookKeyUp(object sender, KeyEventArgs e)
+        {
+            this.ProcessKeyUp(e, true);
+        }
+
+        private void HookKeyDown(object sender, KeyEventArgs e)
+        {
+            if (!this.enable)
+            {
+                return;
+            }
+
+            this.ProcessKeyDown(e, true);
+        }
+
+        private void HookKeyPress(object sender, KeyPressEventArgs e)
+        {
+            if (!this.enable)
+            {
+                return;
+            }
+
+            this.ProcessKeyPress(e, false);
+        }
+
+        private struct HookControllerMessage
+        {
+            public HookControllerMessageType Type { get; set; }
+
+            public EventArgs E { get; set; }
+
+            public bool MiscArg { get; set; }
         }
     }
 }
