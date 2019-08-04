@@ -2,6 +2,8 @@
 {
     using ClickableTransparentOverlay;
     using ImGuiNET;
+    using System.IO;
+    using System.Numerics;
     using System.Threading;
 
     class Program
@@ -62,6 +64,16 @@
                 if(ImGui.Button("Show ImGui Demo"))
                 {
                     showImGuiDemo = true;
+                }
+
+                ImGui.NewLine();
+                if (File.Exists("image.png"))
+                {
+                    ImGui.Image(overlay.AddOrGetImagePointer("image.png"), new Vector2(600, 400));
+                }
+                else
+                {
+                    ImGui.Text("Put any image where the exe is, name is 'image.png'");
                 }
 
                 ImGui.End();

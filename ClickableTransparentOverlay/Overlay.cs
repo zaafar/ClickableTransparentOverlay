@@ -5,10 +5,12 @@
 namespace ClickableTransparentOverlay
 {
     using System;
+    using System.Collections.Generic;
     using System.Numerics;
     using System.Threading;
     using System.Windows.Forms;
     using Veldrid;
+    using Veldrid.ImageSharp;
     using Veldrid.Sdl2;
     using Veldrid.StartupUtilities;
 
@@ -28,6 +30,7 @@ namespace ClickableTransparentOverlay
         private static Vector4 clearColor;
         private static int myFps;
         private static bool isClosed;
+        private static Dictionary<string, Texture> loadedImages;
 
         // For Resizing SDL2Window
         private static Vector2 futurePos;
@@ -58,6 +61,7 @@ namespace ClickableTransparentOverlay
         /// </param>
         public Overlay(int x, int y, int width, int height, int fps, bool debug)
         {
+            loadedImages = new Dictionary<string, Texture>();
             clearColor = new Vector4(0.00f, 0.00f, 0.00f, 0.00f);
             myFps = fps;
             isClosed = false;
@@ -188,8 +192,35 @@ namespace ClickableTransparentOverlay
             hookController.Dispose();
             NativeMethods.ShowConsoleWindow();
             this.SubmitUI = null;
+            loadedImages.Clear();
             Console.WriteLine("All Overlay resources are cleared.");
             Application.Exit();
+        }
+
+        /// <summary>
+        /// Adds the image to the Graphic Device as a texture.
+        /// Then returns the pointer of the added texture. It also
+        /// cache the image internally rather than creating a new texture on every call,
+        /// so this function can be called multiple times per image (per FPS).
+        /// </summary>
+        /// <param name="filePath">
+        /// Path to the image on disk. If the image is loaded in the memory
+        /// save it on the disk before sending to this function. Reason for this
+        /// is to cache the Image Texture using filePath as the key.
+        /// </param>
+        /// <returns>
+        /// A pointer to the Texture in the Graphic Device.
+        /// </returns>
+        public IntPtr AddOrGetImagePointer(string filePath)
+        {
+            if (!loadedImages.TryGetValue(filePath, out Texture texture))
+            {
+                ImageSharpTexture imgSharpTexture = new ImageSharpTexture(filePath);
+                texture = imgSharpTexture.CreateDeviceTexture(graphicsDevice, graphicsDevice.ResourceFactory);
+                loadedImages.Add(filePath, texture);
+            }
+
+            return imController.GetOrCreateImGuiBinding(graphicsDevice.ResourceFactory, texture);
         }
 
         /// <summary>
