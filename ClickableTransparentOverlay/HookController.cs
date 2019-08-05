@@ -120,7 +120,8 @@ namespace ClickableTransparentOverlay
         }
 
         /// <summary>
-        /// Tells the HookController if the ImGui is ready to accept keyboard/mouse messages.
+        /// Consumes all (max limit 10 to avoid infinite loop) the
+        /// keyboard/mouse messages from the message queue.
         /// </summary>
         public void PopMessages()
         {
@@ -157,6 +158,18 @@ namespace ClickableTransparentOverlay
             }
         }
 
+        /// <summary>
+        /// Push the keyboard/mouse message to the message queue.
+        /// </summary>
+        /// <param name="type">
+        /// Message Type.
+        /// </param>
+        /// <param name="e">
+        /// Message details.
+        /// </param>
+        /// <param name="miscArg">
+        /// Only Mouse Up/Down hook uses this param to pass isDownEvent param.
+        /// </param>
         private void PushMessage(HookControllerMessageType type, EventArgs e, bool miscArg = false)
         {
             var message = new HookControllerMessage()

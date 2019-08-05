@@ -69,7 +69,7 @@
                 ImGui.NewLine();
                 if (File.Exists("image.png"))
                 {
-                    ImGui.Image(overlay.AddOrGetImagePointer("image.png"), new Vector2(600, 400));
+                    ImGui.Image(overlay.AddOrGetImagePointer("image.png"), new Vector2(256, 256));
                 }
                 else
                 {
