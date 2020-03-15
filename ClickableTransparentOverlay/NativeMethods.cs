@@ -26,15 +26,12 @@ namespace ClickableTransparentOverlay
         /// <param name="handle">
         /// Veldrid window handle in IntPtr format.
         /// </param>
-        /// <param name="size">
-        /// Size of the SDL2Window.
-        /// </param>
-        public static void EnableTransparent(IntPtr handle, Rectangle size)
+        public static void EnableTransparent(IntPtr handle)
         {
             IntPtr windowLong = GetWindowLongPtr(handle, GWL_EXSTYLE);
             windowLong = new IntPtr(windowLong.ToInt64() | WS_EX_LAYERED | WS_EX_TRANSPARENT);
             SetWindowLongPtr(handle, GWL_EXSTYLE, windowLong);
-            Margins margins = Margins.FromRectangle(size);
+            Margins margins = Margins.FromRectangle(new Rectangle(-1, -1, -1, -1));
             DwmExtendFrameIntoClientArea(handle, ref margins);
         }
 

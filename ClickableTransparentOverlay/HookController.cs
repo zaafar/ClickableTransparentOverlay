@@ -117,6 +117,7 @@ namespace ClickableTransparentOverlay
 
             this.myHook.MouseWheelExt -= this.HookMouseWheelExt;
             this.myHook.Dispose();
+            this.messages.Clear();
         }
 
         /// <summary>

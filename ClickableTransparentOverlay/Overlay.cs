@@ -76,7 +76,7 @@ namespace ClickableTransparentOverlay
             graphicsDevice = VeldridStartup.CreateGraphicsDevice(window, new GraphicsDeviceOptions(true, null, true), GraphicsBackend.Direct3D11);
 
             // graphicsDevice = VeldridStartup.CreateDefaultD3D11GraphicsDevice(new GraphicsDeviceOptions(true, null, true), window);
-            NativeMethods.EnableTransparent(window.Handle, new System.Drawing.Rectangle(window.X, window.Y, window.Width, window.Height));
+            NativeMethods.EnableTransparent(window.Handle);
             window.Resized += () =>
             {
                 graphicsDevice.MainSwapchain.Resize((uint)window.Width, (uint)window.Height);
@@ -151,7 +151,7 @@ namespace ClickableTransparentOverlay
 
             // TODO: move following two lines to _window.Moved
             hookController.UpdateWindowPosition(x, y);
-            NativeMethods.EnableTransparent(window.Handle, new System.Drawing.Rectangle(x, y, width, height));
+            NativeMethods.EnableTransparent(window.Handle);
             requireResize = true;
         }
 
