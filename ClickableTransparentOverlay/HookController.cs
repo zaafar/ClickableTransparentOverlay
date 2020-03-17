@@ -21,7 +21,7 @@ namespace ClickableTransparentOverlay
     /// </summary>
     public class HookController
     {
-        private readonly Stack<HookControllerMessage> messages;
+        private readonly Queue<HookControllerMessage> messages;
         private IKeyboardMouseEvents myHook;
         private bool enable;
         private int windowX;
@@ -38,7 +38,7 @@ namespace ClickableTransparentOverlay
         /// </param>
         public HookController(int x, int y)
         {
-            this.messages = new Stack<HookControllerMessage>();
+            this.messages = new Queue<HookControllerMessage>();
             this.windowX = x;
             this.windowY = y;
             this.enable = true;
@@ -127,32 +127,42 @@ namespace ClickableTransparentOverlay
         public void PopMessages()
         {
             int counter = 0;
-            int maxCounter = 10;
+            int maxCounter = 20;
             while (counter < maxCounter && this.messages.Count > 0)
             {
-                var message = this.messages.Pop();
-                switch (message.Type)
+                var message = this.messages.Dequeue();
+                try
                 {
-                    case HookControllerMessageType.MouseUpDown:
-                        this.ProcessMouseUpDown((MouseEventExtArgs)message.E, message.MiscArg, true);
-                        break;
-                    case HookControllerMessageType.MouseMove:
-                        this.ProcessMouseMove((MouseEventArgs)message.E, true);
-                        break;
-                    case HookControllerMessageType.MouseWheel:
-                        this.ProcessMouseWheel((MouseEventExtArgs)message.E, true);
-                        break;
-                    case HookControllerMessageType.KeyUp:
-                        this.ProcessKeyUp((KeyEventArgs)message.E, true);
-                        break;
-                    case HookControllerMessageType.KeyDown:
-                        this.ProcessKeyDown((KeyEventArgs)message.E, true);
-                        break;
-                    case HookControllerMessageType.KeyPress:
-                        this.ProcessKeyPress((KeyPressEventArgs)message.E, true);
-                        break;
-                    default:
-                        break;
+                    switch (message.Type)
+                    {
+                        case HookControllerMessageType.MouseUpDown:
+                            this.ProcessMouseUpDown((MouseEventExtArgs)message.E, message.MiscArg, true);
+                            break;
+                        case HookControllerMessageType.MouseMove:
+                            this.ProcessMouseMove((MouseEventArgs)message.E, true);
+                            break;
+                        case HookControllerMessageType.MouseWheel:
+                            this.ProcessMouseWheel((MouseEventExtArgs)message.E, true);
+                            break;
+                        case HookControllerMessageType.KeyUp:
+                            this.ProcessKeyUp((KeyEventArgs)message.E, true);
+                            break;
+                        case HookControllerMessageType.KeyDown:
+                            this.ProcessKeyDown((KeyEventArgs)message.E, true);
+                            break;
+                        case HookControllerMessageType.KeyPress:
+                            this.ProcessKeyPress((KeyPressEventArgs)message.E, true);
+                            break;
+                        default:
+                            break;
+                    }
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine("Warning: Caught an exception while handling keyboard/mouse inputs." +
+                        "Report to the GitHub repository if this effects your work & it's reproduceable.");
+                    Console.WriteLine(e.Message);
+                    Console.WriteLine(e.StackTrace);
                 }
 
                 counter++;
@@ -180,7 +190,7 @@ namespace ClickableTransparentOverlay
                 MiscArg = miscArg,
             };
 
-            this.messages.Push(message);
+            this.messages.Enqueue(message);
         }
 
         private void ProcessMouseUpDown(MouseEventExtArgs e, bool isDownEvent, bool shouldSendToImGui)
