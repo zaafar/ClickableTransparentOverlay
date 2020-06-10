@@ -200,18 +200,6 @@ namespace ClickableTransparentOverlay
         }
 
         /// <summary>
-        /// Gets or sets the overlay clickable feature.
-        /// </summary>
-        public static bool Clickable
-        {
-            get => NativeMethods.IsClickable;
-            set
-            {
-                NativeMethods.SetOverlayClickable(window.Handle, value);
-            }
-        }
-
-        /// <summary>
         /// Free all resources acquired by the overlay.
         /// </summary>
         private static void Dispose()
