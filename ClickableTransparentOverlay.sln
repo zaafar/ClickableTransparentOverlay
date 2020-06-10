@@ -1,31 +1,31 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.28307.168
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30128.36
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClickableTransparentOverlay", "ClickableTransparentOverlay\ClickableTransparentOverlay.csproj", "{F5CF8972-D0DA-4FC0-8796-E7C60101C8EA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ClickableTransparentOverlay", "ClickableTransparentOverlay\ClickableTransparentOverlay.csproj", "{210EB536-2C1F-48C0-BE59-6C945FC3E1F2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DriverProgram", "DriverProgram\DriverProgram.csproj", "{370E1945-EF74-4618-A2DE-B5796AC3093E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DriverProgram", "DriverProgram\DriverProgram.csproj", "{8F05BC9C-06E7-49F8-8417-E2E24F07726A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-		Debug|x64 = Debug|x64
-		Release|x64 = Release|x64
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{F5CF8972-D0DA-4FC0-8796-E7C60101C8EA}.Debug|x64.ActiveCfg = Debug|x64
-		{F5CF8972-D0DA-4FC0-8796-E7C60101C8EA}.Debug|x64.Build.0 = Debug|x64
-		{F5CF8972-D0DA-4FC0-8796-E7C60101C8EA}.Release|x64.ActiveCfg = Release|x64
-		{F5CF8972-D0DA-4FC0-8796-E7C60101C8EA}.Release|x64.Build.0 = Release|x64
-		{370E1945-EF74-4618-A2DE-B5796AC3093E}.Debug|x64.ActiveCfg = Debug|x64
-		{370E1945-EF74-4618-A2DE-B5796AC3093E}.Debug|x64.Build.0 = Debug|x64
-		{370E1945-EF74-4618-A2DE-B5796AC3093E}.Release|x64.ActiveCfg = Release|x64
-		{370E1945-EF74-4618-A2DE-B5796AC3093E}.Release|x64.Build.0 = Release|x64
+		{210EB536-2C1F-48C0-BE59-6C945FC3E1F2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{210EB536-2C1F-48C0-BE59-6C945FC3E1F2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{210EB536-2C1F-48C0-BE59-6C945FC3E1F2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{210EB536-2C1F-48C0-BE59-6C945FC3E1F2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8F05BC9C-06E7-49F8-8417-E2E24F07726A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8F05BC9C-06E7-49F8-8417-E2E24F07726A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8F05BC9C-06E7-49F8-8417-E2E24F07726A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8F05BC9C-06E7-49F8-8417-E2E24F07726A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {CC9A7790-CFC1-4D4F-AE2C-177A80D122C8}
+		SolutionGuid = {0CA675A0-B7AC-4B41-9E79-BFD0DD4F8285}
 	EndGlobalSection
 EndGlobal
