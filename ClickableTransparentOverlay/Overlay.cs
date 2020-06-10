@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Numerics;
 using System.Threading;
 using Coroutine;
-using ImGuiNET;
 using Veldrid;
 using Veldrid.ImageSharp;
 using Veldrid.Sdl2;
@@ -190,7 +189,6 @@ namespace ClickableTransparentOverlay
         /// </returns>
         public static IntPtr AddOrGetImagePointer(string filePath)
         {
-            // TODO: See if this is still valid/optimized?
             if (!loadedImages.TryGetValue(filePath, out Texture texture))
             {
                 ImageSharpTexture imgSharpTexture = new ImageSharpTexture(filePath);
