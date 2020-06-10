@@ -1,42 +1,29 @@
-﻿// <copyright file="Overlay.cs" company="Zaafar Ahmed">
-// Copyright (c) Zaafar Ahmed. All rights reserved.
-// </copyright>
+﻿using System;
+using System.Collections.Generic;
+using System.Numerics;
+using System.Threading;
+using Coroutine;
+using ImGuiNET;
+using Veldrid;
+using Veldrid.ImageSharp;
+using Veldrid.Sdl2;
+using Veldrid.StartupUtilities;
 
 namespace ClickableTransparentOverlay
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Numerics;
-    using System.Threading;
-    using System.Windows.Forms;
-    using Veldrid;
-    using Veldrid.ImageSharp;
-    using Veldrid.Sdl2;
-    using Veldrid.StartupUtilities;
-
+    // TODO: Implement overlay info, warn, error logger.
     /// <summary>
     /// A class to create clickable transparent overlay.
     /// </summary>
-    public class Overlay
+    public static class Overlay
     {
-        private static Sdl2Window window;
-        private static GraphicsDevice graphicsDevice;
-        private static CommandList commandList;
-        private static ImGuiController imController;
-        private static HookController hookController;
-        private static Thread uiThread;
-
-        // UI State
-        private static Vector4 clearColor;
-        private static int myFps;
-        private static bool isClosed;
-        private static Dictionary<string, Texture> loadedImages;
-
-        // For Resizing SDL2Window
-        private static Vector2 futurePos;
-        private static Vector2 futureSize;
-        private static bool requireResize;
-        private static bool debugMode;
+        private readonly static Sdl2Window window;
+        private readonly static GraphicsDevice graphicsDevice;
+        private readonly static CommandList commandList;
+        private readonly static ImGuiController imController;
+        private readonly static Vector4 clearColor;
+        private readonly static Dictionary<string, Texture> loadedImages;
+        private static bool terminal = true;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Overlay"/> class.
@@ -59,149 +46,139 @@ namespace ClickableTransparentOverlay
         /// <param name="debug">
         /// In this mode, overlay will not hide the Console.
         /// </param>
-        public Overlay(int x, int y, int width, int height, int fps, bool debug)
+        static Overlay()
         {
-            loadedImages = new Dictionary<string, Texture>();
             clearColor = new Vector4(0.00f, 0.00f, 0.00f, 0.00f);
-            myFps = fps;
-            isClosed = false;
-            debugMode = debug;
-
-            // Stuff related to (thread safe) resizing of SDL2Window
-            requireResize = false;
-            futureSize = Vector2.Zero;
-            futurePos = Vector2.Zero;
-
-            window = new Sdl2Window("Overlay", x, y, width, height, SDL_WindowFlags.Borderless | SDL_WindowFlags.AlwaysOnTop | SDL_WindowFlags.SkipTaskbar, false);
-            graphicsDevice = VeldridStartup.CreateGraphicsDevice(window, new GraphicsDeviceOptions(true, null, true), GraphicsBackend.Direct3D11);
-
-            // graphicsDevice = VeldridStartup.CreateDefaultD3D11GraphicsDevice(new GraphicsDeviceOptions(true, null, true), window);
-            NativeMethods.EnableTransparent(window.Handle);
+            loadedImages = new Dictionary<string, Texture>();
+            window = new Sdl2Window(
+                "Overlay",
+                0,
+                0,
+                2560,
+                1440,
+                SDL_WindowFlags.Borderless |
+                    SDL_WindowFlags.AlwaysOnTop |
+                    SDL_WindowFlags.SkipTaskbar,
+                false);
+            graphicsDevice = VeldridStartup.CreateDefaultD3D11GraphicsDevice(
+                new GraphicsDeviceOptions(false, null, true),
+                window);
+            commandList = graphicsDevice.ResourceFactory.CreateCommandList();
+            imController = new ImGuiController(
+                graphicsDevice,
+                graphicsDevice.MainSwapchain.Framebuffer.OutputDescription,
+                window.Width,
+                window.Height);
             window.Resized += () =>
             {
                 graphicsDevice.MainSwapchain.Resize((uint)window.Width, (uint)window.Height);
                 imController.WindowResized(window.Width, window.Height);
-                futureSize = Vector2.Zero;
-                futurePos = Vector2.Zero;
-                requireResize = false;
-            };
-            window.Closed += () =>
-            {
-                isClosed = true;
             };
 
-            commandList = graphicsDevice.ResourceFactory.CreateCommandList();
-            imController = new ImGuiController(graphicsDevice, graphicsDevice.MainSwapchain.Framebuffer.OutputDescription, window.Width, window.Height, myFps);
-            uiThread = new Thread(this.WhileLoop);
-            hookController = new HookController(window.X, window.Y);
+            NativeMethods.InitTransparency(window.Handle);
+            NativeMethods.SetOverlayClickable(window.Handle, false);
+        }
+
+        public static void RunInfiniteLoop()
+        {
+            DateTime previous = DateTime.Now;
+            DateTime current;
+            TimeSpan interval;
+            float sec;
+            while (window.Exists && !Close)
+            {
+                InputSnapshot snapshot = window.PumpEvents();
+                if (!window.Exists) { break; }
+                current = DateTime.Now;
+                interval = current - previous;
+                sec = (float)interval.TotalSeconds;
+                previous = current;
+                imController.Update(sec > 0 ? sec : 0.001f, snapshot, window.Handle);
+                CoroutineHandler.Tick(interval.TotalSeconds);
+                if (Visible)
+                {
+                    CoroutineHandler.RaiseEvent(OnRender);
+                }
+
+                commandList.Begin();
+                commandList.SetFramebuffer(graphicsDevice.MainSwapchain.Framebuffer);
+                commandList.ClearColorTarget(0, new RgbaFloat(clearColor.X, clearColor.Y, clearColor.Z, clearColor.W));
+                imController.Render(graphicsDevice, commandList);
+                commandList.End();
+                graphicsDevice.SubmitCommands(commandList);
+                graphicsDevice.SwapBuffers(graphicsDevice.MainSwapchain);
+            }
+
+            Dispose();
         }
 
         /// <summary>
         /// To submit ImGui code for generating the UI.
         /// </summary>
-        public event EventHandler SubmitUI;
+        public static Event OnRender = new Event();
 
         /// <summary>
-        /// Starts the overlay.
+        /// Safely Closes the Overlay.
+        /// Doesn't matter if you set it to true multiple times.
         /// </summary>
-        public void Run()
+        public static bool Close { get; set; } = false;
+
+        /// <summary>
+        /// Makes the overlay visible or invisible. Invisible Overlay
+        /// will not call OnRender coroutines, however time based
+        /// coroutines are still called.
+        /// </summary>
+        public static bool Visible { get; set; } = true;
+
+        public static bool TerminalWindow
         {
-            uiThread.Start();
-            hookController.EnableHooks();
-            if (!debugMode)
+            get => terminal;
+            set
             {
-                NativeMethods.HideConsoleWindow();
+                if (value != terminal)
+                {
+                    NativeMethods.SetConsoleWindow(value);
+                }
+
+                terminal = value;
             }
-
-            Application.Run(new ApplicationContext());
         }
 
         /// <summary>
-        /// Set the overlay FPS.
+        /// Gets or sets the position of the overlay window.
         /// </summary>
-        /// <param name="fps">
-        /// FPS to set.
-        /// </param>
-        public void SetFps(int fps)
+        public static Point Position
         {
-            myFps = fps;
-        }
-
-        /// <summary>
-        /// Resizes the overlay.
-        /// </summary>
-        /// <param name="x">
-        /// x axis of the overlay.
-        /// </param>
-        /// <param name="y">
-        /// y axis of the overlay.
-        /// </param>
-        /// <param name="width">
-        /// width of the overlay.
-        /// </param>
-        /// <param name="height">
-        /// height of the overlay.
-        /// </param>
-        public void Resize(int x, int y, int width, int height)
-        {
-            futurePos.X = x;
-            futurePos.Y = y;
-            futureSize.X = width;
-            futureSize.Y = height;
-
-            // TODO: move following two lines to _window.Moved
-            hookController.UpdateWindowPosition(x, y);
-            NativeMethods.EnableTransparent(window.Handle);
-            requireResize = true;
-        }
-
-        /// <summary>
-        /// Shows the overlay.
-        /// </summary>
-        public void Show()
-        {
-            hookController.ResumeHooks();
-            window.Visible = true;
-        }
-
-        /// <summary>
-        /// hides the overlay.
-        /// </summary>
-        public void Hide()
-        {
-            hookController.PauseHooks();
-            window.Visible = false;
-        }
-
-        /// <summary>
-        /// Free all resources acquired by the overlay.
-        /// </summary>
-        public void Dispose()
-        {
-            window.Close();
-            while (!isClosed)
+            get
             {
-                Thread.Sleep(10);
+                return new Point(window.X, window.Y);
             }
+            set
+            {
+                Sdl2Native.SDL_SetWindowPosition(window.SdlWindowHandle, value.X, value.Y);
+            }
+        }
 
-            uiThread.Join();
-            graphicsDevice.WaitForIdle();
-            imController.Dispose();
-            commandList.Dispose();
-            graphicsDevice.Dispose();
-            hookController.Dispose();
-            NativeMethods.ShowConsoleWindow();
-            this.SubmitUI = null;
-            loadedImages.Clear();
-            Console.WriteLine("All Overlay resources are cleared.");
-            Application.Exit();
+        /// <summary>
+        /// Gets or sets the size of the overlay window.
+        /// </summary>
+        public static Point Size
+        {
+            get
+            {
+                return new Point(window.Width, window.Height);
+            }
+            set
+            {
+                Sdl2Native.SDL_SetWindowSize(window.SdlWindowHandle, value.X, value.Y);
+            }
         }
 
         /// <summary>
         /// Adds the image to the Graphic Device as a texture.
         /// Then returns the pointer of the added texture. It also
         /// cache the image internally rather than creating a new texture on every call,
-        /// so this function can be called multiple times per image (per FPS).
+        /// so this function can be called multiple times per frame.
         /// </summary>
         /// <param name="filePath">
         /// Path to the image on disk. If the image is loaded in the memory
@@ -211,8 +188,9 @@ namespace ClickableTransparentOverlay
         /// <returns>
         /// A pointer to the Texture in the Graphic Device.
         /// </returns>
-        public IntPtr AddOrGetImagePointer(string filePath)
+        public static IntPtr AddOrGetImagePointer(string filePath)
         {
+            // TODO: See if this is still valid/optimized?
             if (!loadedImages.TryGetValue(filePath, out Texture texture))
             {
                 ImageSharpTexture imgSharpTexture = new ImageSharpTexture(filePath);
@@ -224,43 +202,34 @@ namespace ClickableTransparentOverlay
         }
 
         /// <summary>
-        /// Infinite While Loop to render the ImGui.
+        /// Gets or sets the overlay clickable feature.
         /// </summary>
-        private void WhileLoop()
+        public static bool Clickable
         {
+            get => NativeMethods.IsClickable;
+            set
+            {
+                NativeMethods.SetOverlayClickable(window.Handle, value);
+            }
+        }
+
+        /// <summary>
+        /// Free all resources acquired by the overlay.
+        /// </summary>
+        private static void Dispose()
+        {
+            window.Close();
             while (window.Exists)
             {
-                if (requireResize)
-                {
-                    Sdl2Native.SDL_SetWindowPosition(window.SdlWindowHandle, (int)futurePos.X, (int)futurePos.Y);
-                    Sdl2Native.SDL_SetWindowSize(window.SdlWindowHandle, (int)futureSize.X, (int)futureSize.Y);
-                    window.PumpEvents();
-                    continue;
-                }
-
-                if (!window.Visible)
-                {
-                    window.PumpEvents();
-                    Thread.Sleep(10);
-                    continue;
-                }
-
-                hookController.PopMessages();
-                if (!window.Exists)
-                {
-                    break;
-                }
-
-                imController.InitlizeFrame(1f / myFps);
-                this.SubmitUI?.Invoke(this, new EventArgs());
-                commandList.Begin();
-                commandList.SetFramebuffer(graphicsDevice.MainSwapchain.Framebuffer);
-                commandList.ClearColorTarget(0, new RgbaFloat(clearColor.X, clearColor.Y, clearColor.Z, clearColor.W));
-                imController.Render(graphicsDevice, commandList);
-                commandList.End();
-                graphicsDevice.SubmitCommands(commandList);
-                graphicsDevice.SwapBuffers(graphicsDevice.MainSwapchain);
+                Thread.Sleep(1);
             }
+
+            graphicsDevice.WaitForIdle();
+            imController.Dispose();
+            commandList.Dispose();
+            graphicsDevice.Dispose();
+            loadedImages.Clear();
+            NativeMethods.SetConsoleWindow(true);
         }
     }
 }
