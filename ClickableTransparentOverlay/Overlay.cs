@@ -27,24 +27,6 @@ namespace ClickableTransparentOverlay
         /// <summary>
         /// Initializes a new instance of the <see cref="Overlay"/> class.
         /// </summary>
-        /// <param name="x">
-        /// x position of the overlay.
-        /// </param>
-        /// <param name="y">
-        /// y position of the overlay.
-        /// </param>
-        /// <param name="width">
-        /// width of the overlay.
-        /// </param>
-        /// <param name="height">
-        /// height of the Overlay.
-        /// </param>
-        /// <param name="fps">
-        /// fps of the overlay.
-        /// </param>
-        /// <param name="debug">
-        /// In this mode, overlay will not hide the Console.
-        /// </param>
         static Overlay()
         {
             clearColor = new Vector4(0.00f, 0.00f, 0.00f, 0.00f);
@@ -78,6 +60,9 @@ namespace ClickableTransparentOverlay
             NativeMethods.SetOverlayClickable(window.Handle, false);
         }
 
+        /// <summary>
+        /// Infinitely renders the over (and execute co-routines) till it's closed.
+        /// </summary>
         public static void RunInfiniteLoop()
         {
             DateTime previous = DateTime.Now;
@@ -129,6 +114,9 @@ namespace ClickableTransparentOverlay
         /// </summary>
         public static bool Visible { get; set; } = true;
 
+        /// <summary>
+        /// Gets or sets a value indicating whether to hide the terminal window.
+        /// </summary>
         public static bool TerminalWindow
         {
             get => terminal;

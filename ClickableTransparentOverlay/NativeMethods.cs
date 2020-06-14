@@ -17,7 +17,7 @@ namespace ClickableTransparentOverlay
         private const int SW_HIDE = 0x00;
         private const int SW_SHOW = 0x05;
 
-        public static bool IsClickable = true;
+        private static bool isClickable = true;
         private static IntPtr GWL_EXSTYLE_CLICKABLE = IntPtr.Zero;
         private static IntPtr GWL_EXSTYLE_NOT_CLICKABLE = IntPtr.Zero;
 
@@ -47,16 +47,16 @@ namespace ClickableTransparentOverlay
         /// <param name="WantClickable">Set to true if you want to make the window clickable otherwise false.</param>
         internal static void SetOverlayClickable(IntPtr handle, bool WantClickable)
         {
-            if (!IsClickable && WantClickable)
+            if (!isClickable && WantClickable)
             {
                 SetWindowLongPtr(handle, GWL_EXSTYLE, GWL_EXSTYLE_CLICKABLE);
                 SetFocus(handle);
-                IsClickable = true;
+                isClickable = true;
             }
-            else if(IsClickable && !WantClickable)
+            else if(isClickable && !WantClickable)
             {
                 SetWindowLongPtr(handle, GWL_EXSTYLE, GWL_EXSTYLE_NOT_CLICKABLE);
-                IsClickable = false;
+                isClickable = false;
             }
         }
 

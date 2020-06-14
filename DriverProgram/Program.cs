@@ -29,11 +29,11 @@ namespace DriverProgram
             Overlay.RunInfiniteLoop();
         }
 
-        private static IEnumerator<IWait> SubmitRenderLogic()
+        private static IEnumerator<Wait> SubmitRenderLogic()
         {
             while (true)
             {
-                yield return new WaitEvent(Overlay.OnRender);
+                yield return new Wait(Overlay.OnRender);
 
                 if (NativeMethods.IsKeyPressed(0x7B)) //F12.
                 {
@@ -122,7 +122,7 @@ namespace DriverProgram
                         // Time Based Coroutines are executed even when the Overlay is invisible.
                         // So in case there is a reason you want to hide the overlay, u can use timebased
                         // coroutines to bring it back.
-                        CoroutineHandler.InvokeLater(new WaitSeconds(seconds), () => { Overlay.Visible = true; });
+                        CoroutineHandler.InvokeLater(new Wait(seconds), () => { Overlay.Visible = true; });
                     }
 
                     ImGui.NewLine();
@@ -153,11 +153,11 @@ namespace DriverProgram
             }
         }
 
-        private static IEnumerator<IWait> UpdateOverlaySample2()
+        private static IEnumerator<Wait> UpdateOverlaySample2()
         {
             while (true)
             {
-                yield return new WaitSeconds(1);
+                yield return new Wait(1);
                 for (int i = 0; i < circleCenters.Length; i++)
                 {
                     circleCenters[i].X = randomGen.Next(0, 2560);
