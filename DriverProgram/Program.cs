@@ -35,7 +35,7 @@ namespace DriverProgram
             {
                 yield return new WaitEvent(Overlay.OnRender);
 
-                if (NativeMethods.isKeyPressed(0x7B)) //F12.
+                if (NativeMethods.IsKeyPressed(0x7B)) //F12.
                 {
                     showClickableMenu = !showClickableMenu;
                 }
@@ -148,6 +148,8 @@ namespace DriverProgram
 
                     ImGui.End();
                 }
+
+                ImGui.End();
             }
         }
 

@@ -29,7 +29,7 @@ namespace ClickableTransparentOverlay
         /// <param name="handle">
         /// Veldrid window handle in IntPtr format.
         /// </param>
-        public static void InitTransparency(IntPtr handle)
+        internal static void InitTransparency(IntPtr handle)
         {
             GWL_EXSTYLE_CLICKABLE = GetWindowLongPtr(handle, GWL_EXSTYLE);
             GWL_EXSTYLE_NOT_CLICKABLE = new IntPtr(
@@ -45,7 +45,7 @@ namespace ClickableTransparentOverlay
         /// </summary>
         /// <param name="handle">Veldrid window handle in IntPtr format.</param>
         /// <param name="WantClickable">Set to true if you want to make the window clickable otherwise false.</param>
-        public static void SetOverlayClickable(IntPtr handle, bool WantClickable)
+        internal static void SetOverlayClickable(IntPtr handle, bool WantClickable)
         {
             if (!IsClickable && WantClickable)
             {
@@ -63,7 +63,7 @@ namespace ClickableTransparentOverlay
         /// <summary>
         /// Allows showing/hiding the console window.
         /// </summary>
-        public static void SetConsoleWindow(bool visiable)
+        internal static void SetConsoleWindow(bool visiable)
         {
             if (visiable)
             {
@@ -83,7 +83,7 @@ namespace ClickableTransparentOverlay
         /// </summary>
         /// <param name="hWnd"></param>
         /// <returns></returns>
-        public static Vector2 GetCursorPosition(IntPtr hWnd)
+        internal static Vector2 GetCursorPosition(IntPtr hWnd)
         {
             if (GetCursorPos(out var lpPoint))
             {
@@ -100,23 +100,23 @@ namespace ClickableTransparentOverlay
         /// </summary>
         /// <param name="nVirtKey">key to look for.</param>
         /// <returns>weather the key is pressed or not.</returns>
-        public static bool isKeyPressed(int nVirtKey)
+        public static bool IsKeyPressed(int nVirtKey)
         {
             return Convert.ToBoolean(GetKeyState(nVirtKey) & KEY_PRESSED);
         }
 
         [DllImport("USER32.dll")]
-        static extern short GetKeyState(int nVirtKey);
+        private static extern short GetKeyState(int nVirtKey);
 
         [DllImport("user32.dll", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
-        static extern bool GetCursorPos(out POINT lpPoint);
+        private static extern bool GetCursorPos(out POINT lpPoint);
 
         [DllImport("user32.dll")]
-        static extern bool ScreenToClient(IntPtr hWnd, ref POINT lpPoint);
+        private static extern bool ScreenToClient(IntPtr hWnd, ref POINT lpPoint);
 
         [DllImport("user32.dll", SetLastError = true)]
-        static extern IntPtr SetFocus(IntPtr hWnd);
+        private static extern IntPtr SetFocus(IntPtr hWnd);
 
         [DllImport("dwmapi.dll")]
         private static extern int DwmExtendFrameIntoClientArea(IntPtr hWnd, ref Margins pMarInset);
@@ -155,7 +155,7 @@ namespace ClickableTransparentOverlay
         }
 
         [StructLayout(LayoutKind.Sequential)]
-        public struct POINT
+        internal struct POINT
         {
             public int X;
             public int Y;
