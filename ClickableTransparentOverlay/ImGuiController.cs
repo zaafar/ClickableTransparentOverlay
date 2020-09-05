@@ -13,7 +13,7 @@ namespace ClickableTransparentOverlay
     /// A modified version of Veldrid.ImGui's ImGuiRenderer.
     /// Manages input for ImGui and handles rendering ImGui's DrawLists with Veldrid.
     /// </summary>
-    internal class ImGuiController : IDisposable
+    internal sealed class ImGuiController : IDisposable
     {
         private GraphicsDevice _gd;
         private bool _frameBegun;
