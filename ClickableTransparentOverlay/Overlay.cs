@@ -147,6 +147,37 @@ namespace ClickableTransparentOverlay
         }
 
         /// <summary>
+        /// Gets the number of displays available on the computer.
+        /// </summary>
+        public static int NumberVideoDisplays
+        {
+            get
+            {
+                return Sdl2Native.SDL_GetNumVideoDisplays();
+            }
+        }
+
+        /// <summary>
+        /// Moves the whole overlay to a different monitor screen.
+        /// </summary>
+        /// <param name="num">Monitor number to move it to starting from 0.</param>
+        /// <returns>screen box in which the window is moved to.</returns>
+        public static Rectangle MoveToDisplay(int num)
+        {
+            int numDisplays = NumberVideoDisplays;
+            if ( num >= numDisplays || num < 0)
+            {
+                return new Rectangle(Position, Size);
+            }
+
+            var bounds = new Rectangle();
+            SDL2Functions.SDL_GetDisplayBounds(num, ref bounds);
+            Position = new Point(bounds.X, bounds.Y);
+            Size = new Point(bounds.Width, bounds.Height);
+            return bounds;
+        }
+
+        /// <summary>
         /// Gets or sets the size of the overlay window.
         /// </summary>
         public static Point Size

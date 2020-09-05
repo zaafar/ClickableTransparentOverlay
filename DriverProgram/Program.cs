@@ -22,6 +22,8 @@ namespace DriverProgram
         private static Random randomGen = new Random();
         private static Vector2[] circleCenters = new Vector2[200];
 
+        private static int currentDisplay = 0;
+
         static void Main()
         {
             CoroutineHandler.Start(UpdateOverlaySample2());
@@ -58,6 +60,7 @@ namespace DriverProgram
                         ImGuiWindowFlags.NoResize);
 
                     ImGui.Text("I am sample Overlay");
+                    ImGui.Text($"Number of displays {Overlay.NumberVideoDisplays}");
                     ImGui.Text("You can not click me");
                     ImGui.Text("I am here just to display stuff");
                     ImGui.Text($"Current Date: {DateTime.Now.Date}");
@@ -106,8 +109,20 @@ namespace DriverProgram
                     ImGui.Checkbox("Show full-screen non-clickable transparent overlay sample 2.", ref showOverlaySample2);
                     ImGui.NewLine();
 
+                    if (ImGui.InputInt("Set To Display", ref currentDisplay))
+                    {
+                        var box = Overlay.MoveToDisplay(currentDisplay);
+                        // TODO: Fix local resizeHelper.
+                        resizeHelper[0] = box.X;
+                        resizeHelper[1] = box.Y;
+                        resizeHelper[2] = box.Width;
+                        resizeHelper[3] = box.Height;
+                    }
+
                     ImGui.SliderInt2("Set Position", ref resizeHelper[0], 0, 3840);
                     ImGui.SliderInt2("Set Size", ref resizeHelper[2], 0, 3840);
+
+
                     if (ImGui.Button("Resize"))
                     {
                         Overlay.Position = new Veldrid.Point(resizeHelper[0], resizeHelper[1]);
