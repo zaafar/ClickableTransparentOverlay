@@ -24,6 +24,11 @@ namespace ClickableTransparentOverlay
         private const int KEY_PRESSED = 0x8000;
 
         /// <summary>
+        /// Gets a value indicating whether the overlay is clickable or not.
+        /// </summary>
+        internal static bool IsClickable { get { return isClickable; } }
+
+        /// <summary>
         /// Allows the SDL2Window to become transparent.
         /// </summary>
         /// <param name="handle">

@@ -374,9 +374,16 @@ namespace ClickableTransparentOverlay
                 }
             }
 
-            io.MouseDown[0] = leftPressed || snapshot.IsMouseDown(MouseButton.Left);
-            io.MouseDown[1] = rightPressed || snapshot.IsMouseDown(MouseButton.Right);
-            io.MouseDown[2] = middlePressed || snapshot.IsMouseDown(MouseButton.Middle);
+            if (NativeMethods.IsClickable)
+            {
+                leftPressed |= snapshot.IsMouseDown(MouseButton.Left);
+                rightPressed |= snapshot.IsMouseDown(MouseButton.Right);
+                middlePressed |= snapshot.IsMouseDown(MouseButton.Middle);
+            }
+
+            io.MouseDown[0] = leftPressed;
+            io.MouseDown[1] = rightPressed;
+            io.MouseDown[2] = middlePressed;
             io.MousePos = NativeMethods.GetCursorPosition(handle);
             io.MouseWheel = snapshot.WheelDelta;
 
