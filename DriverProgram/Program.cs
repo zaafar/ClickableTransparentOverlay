@@ -111,8 +111,7 @@ namespace DriverProgram
 
                     if (ImGui.InputInt("Set To Display", ref currentDisplay))
                     {
-                        var box = Overlay.MoveToDisplay(currentDisplay);
-                        // TODO: Fix local resizeHelper.
+                        var box = Overlay.GetDisplayBounds(currentDisplay);
                         resizeHelper[0] = box.X;
                         resizeHelper[1] = box.Y;
                         resizeHelper[2] = box.Width;

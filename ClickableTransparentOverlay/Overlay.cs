@@ -158,11 +158,11 @@ namespace ClickableTransparentOverlay
         }
 
         /// <summary>
-        /// Moves the whole overlay to a different monitor screen.
+        /// Gets the monitor bounds based on the monitor number.
         /// </summary>
-        /// <param name="num">Monitor number to move it to starting from 0.</param>
+        /// <param name="num">Monitor number starting from 0.</param>
         /// <returns>screen box in which the window is moved to.</returns>
-        public static Rectangle MoveToDisplay(int num)
+        public static Rectangle GetDisplayBounds(int num)
         {
             int numDisplays = NumberVideoDisplays;
             if ( num >= numDisplays || num < 0)
@@ -172,8 +172,6 @@ namespace ClickableTransparentOverlay
 
             var bounds = new Rectangle();
             SDL2Functions.SDL_GetDisplayBounds(num, ref bounds);
-            Position = new Point(bounds.X, bounds.Y);
-            Size = new Point(bounds.Width, bounds.Height);
             return bounds;
         }
 
