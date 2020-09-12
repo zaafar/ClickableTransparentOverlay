@@ -230,6 +230,7 @@ namespace ClickableTransparentOverlay
             graphicsDevice.WaitForIdle();
             imController.Dispose();
             commandList.Dispose();
+            graphicsDevice.WaitForIdle();
             graphicsDevice.Dispose();
             loadedImages.Clear();
             NativeMethods.SetConsoleWindow(true);

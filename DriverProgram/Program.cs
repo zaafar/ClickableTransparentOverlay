@@ -24,6 +24,7 @@ namespace DriverProgram
 
         private static int currentDisplay = 0;
 
+        private static bool disable0x7Bkey = false;
         static void Main()
         {
             CoroutineHandler.Start(UpdateOverlaySample2());
@@ -37,9 +38,11 @@ namespace DriverProgram
             {
                 yield return new Wait(Overlay.OnRender);
 
-                if (NativeMethods.IsKeyPressed(0x7B)) //F12.
+                if (NativeMethods.IsKeyPressed(0x7B) && !disable0x7Bkey) //F12.
                 {
                     showClickableMenu = !showClickableMenu;
+                    disable0x7Bkey = true;
+                    CoroutineHandler.InvokeLater(new Wait(0.2), () => disable0x7Bkey = false);
                 }
 
                 if (showImGuiDemo)

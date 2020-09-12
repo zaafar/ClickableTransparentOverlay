@@ -102,6 +102,10 @@ namespace ClickableTransparentOverlay
         /// <summary>
         /// Returns true if the key is pressed.
         /// For keycode information visit: https://www.pinvoke.net/default.aspx/user32.getkeystate
+        /// NOTE: This function can return True multiple times per single keypress.
+        ///       It depends on how long the user pressed the key for and
+        ///       how many times caller called this function while the key was pressed.
+        ///       Caller of this function is responsible to mitigate this behaviour.
         /// </summary>
         /// <param name="nVirtKey">key to look for.</param>
         /// <returns>weather the key is pressed or not.</returns>
