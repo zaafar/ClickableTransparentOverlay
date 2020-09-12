@@ -34,10 +34,10 @@
   <ItemGroup>
     <PackageReference Include="Coroutine" Version="2.0.0" />
     <PackageReference Include="ImGui.NET" Version="1.78.0" />
-    <PackageReference Include="Veldrid" Version="4.8.0" />
-    <PackageReference Include="Veldrid.ImageSharp" Version="4.8.0" />
-    <PackageReference Include="Veldrid.Sdl2" Version="4.8.0" />
-    <PackageReference Include="Veldrid.StartupUtilities" Version="4.8.0" />
+    <PackageReference Include="Veldrid" Version="4.9.0-g99f48fc1fd" />
+    <PackageReference Include="Veldrid.ImageSharp" Version="4.9.0-g99f48fc1fd" />
+    <PackageReference Include="Veldrid.Sdl2" Version="4.9.0-g99f48fc1fd" />
+    <PackageReference Include="Veldrid.StartupUtilities" Version="4.9.0-g99f48fc1fd" />
   </ItemGroup>
 
 </Project>
