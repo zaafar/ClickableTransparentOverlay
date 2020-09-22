@@ -201,10 +201,14 @@ namespace ClickableTransparentOverlay
         /// save it on the disk before sending to this function. Reason for this
         /// is to cache the Image Texture using filePath as the key.
         /// </param>
-        /// <returns>
-        /// A pointer to the Texture in the Graphic Device.
-        /// </returns>
-        public static IntPtr AddOrGetImagePointer(string filePath)
+        /// <param name="handle">output pointer to the image in the graphic device.</param>
+        /// <param name="width">width of the loaded image.</param>
+        /// <param name="height">height of the loaded image.</param>
+        public static void AddOrGetImagePointer(
+            string filePath,
+            out IntPtr handle,
+            out uint width,
+            out uint height)
         {
             if (!loadedImages.TryGetValue(filePath, out Texture texture))
             {
@@ -213,7 +217,9 @@ namespace ClickableTransparentOverlay
                 loadedImages.Add(filePath, texture);
             }
 
-            return imController.GetOrCreateImGuiBinding(graphicsDevice.ResourceFactory, texture);
+            width = texture.Width;
+            height = texture.Height;
+            handle = imController.GetOrCreateImGuiBinding(graphicsDevice.ResourceFactory, texture);
         }
 
         /// <summary>

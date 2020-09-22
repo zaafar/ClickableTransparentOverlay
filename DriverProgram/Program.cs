@@ -156,7 +156,12 @@ namespace DriverProgram
                     ImGui.NewLine();
                     if (File.Exists("image.png"))
                     {
-                        ImGui.Image(Overlay.AddOrGetImagePointer("image.png"), new Vector2(256, 256));
+                        Overlay.AddOrGetImagePointer(
+                            "image.png",
+                            out IntPtr imgPtr,
+                            out uint w,
+                            out uint h);
+                        ImGui.Image(imgPtr, new Vector2(w, h));
                     }
                     else
                     {
