@@ -310,7 +310,6 @@ namespace ClickableTransparentOverlay
             if (_frameBegun)
             {
                 _frameBegun = false;
-                ImGui.EndFrame();
                 ImGui.Render();
                 RenderImDrawData(ImGui.GetDrawData(), gd, cl);
             }
