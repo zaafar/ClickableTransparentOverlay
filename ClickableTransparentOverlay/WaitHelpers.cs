@@ -18,7 +18,6 @@ namespace ClickableTransparentOverlay
                 return SpinWaitInternal(stopWaitingCondition);
             
             var cancellationToken = new CancellationTokenSource(timeout.Value).Token;
-
             return SpinWaitInternal(() => stopWaitingCondition() || cancellationToken.IsCancellationRequested);
         }
         

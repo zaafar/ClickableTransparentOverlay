@@ -48,7 +48,6 @@ namespace DriverProgram
             }
 
             state.OverlaySample2.Update();
-            
             Thread.Sleep(state.LogicTickDelayInMilliseconds); //Not accurate at all as a mechanism for limiting thread runs
         }
 
@@ -99,20 +98,25 @@ namespace DriverProgram
             {
                 if (await RenderMainMenu()) return;
             }
-
-            ImGui.End();
         }
 
         private async Task<bool> RenderMainMenu()
         {
             if (!ImGui.Begin("Overlay Main Menu", ref state.IsRunning, ImGuiWindowFlags.NoResize | ImGuiWindowFlags.AlwaysAutoResize))
             {
+                // This is executed when this window is collapsed.
                 ImGui.End();
+                if (!state.IsRunning)
+                {
+                    await Close();
+                }
+
                 return true;
             }
 
             if (!state.IsRunning)
             {
+                ImGui.End();
                 await Close();
                 return true;
             }

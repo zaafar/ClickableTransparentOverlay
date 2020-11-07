@@ -42,7 +42,7 @@ namespace ClickableTransparentOverlay
         /// Starts the overlay
         /// </summary>
         /// <returns>Task that finishes once the overlay is ready</returns>
-        public async Task Start()
+        private async Task Start()
         {
             cancellationTokenSource = new CancellationTokenSource();
             
@@ -105,7 +105,7 @@ namespace ClickableTransparentOverlay
         }
 
         /// <summary>
-        /// Infinitely renders the over (and execute co-routines) till it's closed.
+        /// Infinitely calls the Render task until the overlay closes.
         /// </summary>
         private async Task RunInfiniteLoop(CancellationToken cancellationToken)
         {
@@ -135,7 +135,11 @@ namespace ClickableTransparentOverlay
             if (window.Exists)
                 window.Close();
         }
-        
+
+        /// <summary>
+        /// Abstract Task for creating the UI.
+        /// </summary>
+        /// <returns>Task that finishes once per frame</returns>
         protected abstract Task Render();
 
         /// <summary>
