@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Numerics;
 using System.Threading;
-using Coroutine;
+using System.Threading.Tasks;
 using Veldrid;
 using Veldrid.ImageSharp;
 using Veldrid.Sdl2;
@@ -14,75 +15,113 @@ namespace ClickableTransparentOverlay
     /// <summary>
     /// A class to create clickable transparent overlay.
     /// </summary>
-    public static class Overlay
+    public abstract class Overlay : IDisposable
     {
-        private readonly static Sdl2Window window;
-        private readonly static GraphicsDevice graphicsDevice;
-        private readonly static CommandList commandList;
-        private readonly static ImGuiController imController;
-        private readonly static Vector4 clearColor;
-        private readonly static Dictionary<string, Texture> loadedImages;
+        private volatile Sdl2Window window;
+        private GraphicsDevice graphicsDevice;
+        private CommandList commandList;
+        private ImGuiController imController;
+        private Vector4 clearColor;
+        private Dictionary<string, Texture> loadedImages;
         private static bool terminal = true;
+        
+        private Thread renderThread;
+        private volatile CancellationTokenSource cancellationTokenSource;
+        private volatile bool overlayIsReady;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Overlay"/> class.
         /// </summary>
-        static Overlay()
+        public Overlay()
         {
             clearColor = new Vector4(0.00f, 0.00f, 0.00f, 0.00f);
             loadedImages = new Dictionary<string, Texture>();
-            window = new Sdl2Window(
-                "Overlay",
-                0,
-                0,
-                2560,
-                1440,
-                SDL_WindowFlags.Borderless |
+        }
+
+        /// <summary>
+        /// Starts the overlay
+        /// </summary>
+        /// <returns>Task that finishes once the overlay is ready</returns>
+        public async Task Start()
+        {
+            cancellationTokenSource = new CancellationTokenSource();
+            
+            renderThread = new Thread(async () =>
+            {
+                window = new Sdl2Window(
+                    "Overlay",
+                    0,
+                    0,
+                    2560,
+                    1440,
+                    SDL_WindowFlags.Borderless |
                     SDL_WindowFlags.AlwaysOnTop |
                     SDL_WindowFlags.SkipTaskbar,
-                false);
-            graphicsDevice = VeldridStartup.CreateDefaultD3D11GraphicsDevice(
-                new GraphicsDeviceOptions(false, null, true),
-                window);
-            commandList = graphicsDevice.ResourceFactory.CreateCommandList();
-            imController = new ImGuiController(
-                graphicsDevice,
-                graphicsDevice.MainSwapchain.Framebuffer.OutputDescription,
-                window.Width,
-                window.Height);
-            window.Resized += () =>
-            {
-                graphicsDevice.MainSwapchain.Resize((uint)window.Width, (uint)window.Height);
-                imController.WindowResized(window.Width, window.Height);
-            };
+                    false);
+                graphicsDevice = VeldridStartup.CreateDefaultD3D11GraphicsDevice(
+                    new GraphicsDeviceOptions(false, null, true),
+                    window);
+                commandList = graphicsDevice.ResourceFactory.CreateCommandList();
+                imController = new ImGuiController(
+                    graphicsDevice,
+                    graphicsDevice.MainSwapchain.Framebuffer.OutputDescription,
+                    window.Width,
+                    window.Height);
+                window.Resized += () =>
+                {
+                    graphicsDevice.MainSwapchain.Resize((uint)window.Width, (uint)window.Height);
+                    imController.WindowResized(window.Width, window.Height);
+                };
+                
+                NativeMethods.InitTransparency(window.Handle);
+                NativeMethods.SetOverlayClickable(window.Handle, false);
+                
+                if (!overlayIsReady)
+                {
+                    overlayIsReady = true;
+                }
 
-            NativeMethods.InitTransparency(window.Handle);
-            NativeMethods.SetOverlayClickable(window.Handle, false);
+                await RunInfiniteLoop(cancellationTokenSource.Token);
+                
+            });
+            
+            renderThread.Start();
+            
+            await WaitHelpers.SpinWait(() => overlayIsReady);
+        }
+
+        /// <summary>
+        /// Starts the overlay and waits for the overlay to be closed.
+        /// </summary>
+        /// <returns>A task that finishes once the overlay closes</returns>
+        public async Task Run()
+        {
+            if (!overlayIsReady)
+            {
+                await Start();
+            }
+
+            await WaitHelpers.SpinWait(() => !window.Exists);
         }
 
         /// <summary>
         /// Infinitely renders the over (and execute co-routines) till it's closed.
         /// </summary>
-        public static void RunInfiniteLoop()
+        private async Task RunInfiniteLoop(CancellationToken cancellationToken)
         {
-            DateTime previous = DateTime.Now;
-            DateTime current;
-            TimeSpan interval;
-            float sec;
-            while (window.Exists && !Close)
+            var stopwatch = new Stopwatch();
+            stopwatch.Start();
+
+            while (window.Exists && !cancellationToken.IsCancellationRequested)
             {
                 InputSnapshot snapshot = window.PumpEvents();
                 if (!window.Exists) { break; }
-                current = DateTime.Now;
-                interval = current - previous;
-                sec = (float)interval.TotalSeconds;
-                previous = current;
-                imController.Update(sec > 0 ? sec : 0.001f, snapshot, window.Handle);
-                CoroutineHandler.Tick(interval.TotalSeconds);
-                if (Visible)
-                {
-                    CoroutineHandler.RaiseEvent(OnRender);
-                }
+
+                var deltaSeconds = (float)stopwatch.ElapsedTicks / Stopwatch.Frequency;
+                stopwatch.Restart();
+                imController.Update(deltaSeconds, snapshot, window.Handle);
+                
+                await Render();
 
                 commandList.Begin();
                 commandList.SetFramebuffer(graphicsDevice.MainSwapchain.Framebuffer);
@@ -93,26 +132,21 @@ namespace ClickableTransparentOverlay
                 graphicsDevice.SwapBuffers(graphicsDevice.MainSwapchain);
             }
 
-            Dispose();
+            if (window.Exists)
+                window.Close();
         }
-
-        /// <summary>
-        /// To submit ImGui code for generating the UI.
-        /// </summary>
-        public static Event OnRender = new Event();
+        
+        protected abstract Task Render();
 
         /// <summary>
         /// Safely Closes the Overlay.
-        /// Doesn't matter if you set it to true multiple times.
         /// </summary>
-        public static bool Close { get; set; } = false;
-
-        /// <summary>
-        /// Makes the overlay visible or invisible. Invisible Overlay
-        /// will not call OnRender coroutines, however time based
-        /// coroutines are still called.
-        /// </summary>
-        public static bool Visible { get; set; } = true;
+        /// <returns>Task that finishes once the window is gone up to a maximum of 3 seconds.</returns>
+        public async Task Close()
+        {
+            cancellationTokenSource.Cancel();
+            await WaitHelpers.SpinWait(() => window.Exists, TimeSpan.FromSeconds(3));
+        }
 
         /// <summary>
         /// Gets or sets a value indicating whether to hide the terminal window.
@@ -134,7 +168,7 @@ namespace ClickableTransparentOverlay
         /// <summary>
         /// Gets or sets the position of the overlay window.
         /// </summary>
-        public static Point Position
+        public Point Position
         {
             get
             {
@@ -162,7 +196,7 @@ namespace ClickableTransparentOverlay
         /// </summary>
         /// <param name="num">Monitor number starting from 0.</param>
         /// <returns>screen box in which the window is moved to.</returns>
-        public static Rectangle GetDisplayBounds(int num)
+        public Rectangle GetDisplayBounds(int num)
         {
             int numDisplays = NumberVideoDisplays;
             if ( num >= numDisplays || num < 0)
@@ -178,7 +212,7 @@ namespace ClickableTransparentOverlay
         /// <summary>
         /// Gets or sets the size of the overlay window.
         /// </summary>
-        public static Point Size
+        public Point Size
         {
             get
             {
@@ -204,7 +238,7 @@ namespace ClickableTransparentOverlay
         /// <param name="handle">output pointer to the image in the graphic device.</param>
         /// <param name="width">width of the loaded image.</param>
         /// <param name="height">height of the loaded image.</param>
-        public static void AddOrGetImagePointer(
+        public void AddOrGetImagePointer(
             string filePath,
             out IntPtr handle,
             out uint width,
@@ -225,12 +259,11 @@ namespace ClickableTransparentOverlay
         /// <summary>
         /// Free all resources acquired by the overlay.
         /// </summary>
-        private static void Dispose()
+        public virtual void Dispose()
         {
-            window.Close();
-            while (window.Exists)
+            if (renderThread.IsAlive)
             {
-                Thread.Sleep(1);
+                Close().Wait();
             }
 
             graphicsDevice.WaitForIdle();
