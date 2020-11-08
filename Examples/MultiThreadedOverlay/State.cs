@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics;
 
-namespace DriverProgram
+namespace MultiThreadedOverlay
 {
     public class State
     {

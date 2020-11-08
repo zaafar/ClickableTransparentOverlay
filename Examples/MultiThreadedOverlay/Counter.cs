@@ -1,4 +1,4 @@
-﻿namespace DriverProgram
+﻿namespace MultiThreadedOverlay
 {
     public class Counter
     {

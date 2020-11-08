@@ -2,7 +2,7 @@
 using System.Numerics;
 using ImGuiNET;
 
-namespace DriverProgram
+namespace MultiThreadedOverlay
 {
     public class OverlaySample2RandomCircles
     {

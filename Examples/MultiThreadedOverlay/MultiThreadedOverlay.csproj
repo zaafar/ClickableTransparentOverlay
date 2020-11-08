@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ClickableTransparentOverlay\ClickableTransparentOverlay.csproj" />
+    <ProjectReference Include="..\..\ClickableTransparentOverlay\ClickableTransparentOverlay.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using ClickableTransparentOverlay;
 using ImGuiNET;
 
-namespace DriverProgram
+namespace MultiThreadedOverlay
 {
     /// <summary>
     /// Render Loop and Logic Loop are independent from each other. 
@@ -35,7 +35,13 @@ namespace DriverProgram
             
             logicThread.Start();
         }
-        
+
+        public override Task Close()
+        {
+            this.state.IsRunning = false;
+            return base.Close();
+        }
+
         private void LogicUpdate(float updateDeltaTicks)
         {
             state.LogicTicksCounter.Increment();
@@ -45,6 +51,7 @@ namespace DriverProgram
             {
                 Thread.Sleep(TimeSpan.FromSeconds(state.SleepInSeconds));
                 state.RequestLogicThreadSleep = false;
+                this.Close();
             }
 
             state.OverlaySample2.Update();

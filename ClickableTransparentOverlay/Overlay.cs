@@ -94,7 +94,7 @@ namespace ClickableTransparentOverlay
         /// Starts the overlay and waits for the overlay to be closed.
         /// </summary>
         /// <returns>A task that finishes once the overlay closes</returns>
-        public async Task Run()
+        public virtual async Task Run()
         {
             if (!overlayIsReady)
             {
@@ -146,7 +146,7 @@ namespace ClickableTransparentOverlay
         /// Safely Closes the Overlay.
         /// </summary>
         /// <returns>Task that finishes once the window is gone up to a maximum of 3 seconds.</returns>
-        public async Task Close()
+        public virtual async Task Close()
         {
             cancellationTokenSource.Cancel();
             await WaitHelpers.SpinWait(() => window.Exists, TimeSpan.FromSeconds(3));
