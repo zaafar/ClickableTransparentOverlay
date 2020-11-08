@@ -1,7 +1,7 @@
-﻿using System.Diagnostics;
-
-namespace MultiThreadedOverlay
+﻿namespace MultiThreadedOverlay
 {
+    using System.Diagnostics;
+
     public class State
     {
         public readonly Stopwatch Watch = new Stopwatch();

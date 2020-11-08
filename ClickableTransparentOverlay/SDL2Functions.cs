@@ -1,8 +1,7 @@
-﻿
-namespace ClickableTransparentOverlay
+﻿namespace ClickableTransparentOverlay
 {
-    using Veldrid.Sdl2;
     using Veldrid;
+    using Veldrid.Sdl2;
 
     internal static class SDL2Functions
     {

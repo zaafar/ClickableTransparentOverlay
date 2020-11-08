@@ -1,16 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Numerics;
-using System.Threading;
-using System.Threading.Tasks;
-using Veldrid;
-using Veldrid.ImageSharp;
-using Veldrid.Sdl2;
-using Veldrid.StartupUtilities;
-
-namespace ClickableTransparentOverlay
+﻿namespace ClickableTransparentOverlay
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Diagnostics;
+    using System.Numerics;
+    using System.Threading;
+    using System.Threading.Tasks;
+    using Veldrid;
+    using Veldrid.ImageSharp;
+    using Veldrid.Sdl2;
+    using Veldrid.StartupUtilities;
+
     // TODO: Implement overlay info, warn, error logger.
     /// <summary>
     /// A class to create clickable transparent overlay.

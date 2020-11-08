@@ -1,14 +1,14 @@
-﻿using System;
-using System.Diagnostics;
-using System.IO;
-using System.Numerics;
-using System.Threading;
-using System.Threading.Tasks;
-using ClickableTransparentOverlay;
-using ImGuiNET;
-
-namespace MultiThreadedOverlay
+﻿namespace MultiThreadedOverlay
 {
+    using System;
+    using System.Diagnostics;
+    using System.IO;
+    using System.Numerics;
+    using System.Threading;
+    using System.Threading.Tasks;
+    using ClickableTransparentOverlay;
+    using ImGuiNET;
+
     /// <summary>
     /// Render Loop and Logic Loop are independent from each other. 
     /// </summary>

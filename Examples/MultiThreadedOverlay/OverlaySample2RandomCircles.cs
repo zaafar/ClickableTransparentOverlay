@@ -1,9 +1,9 @@
-﻿using System;
-using System.Numerics;
-using ImGuiNET;
-
-namespace MultiThreadedOverlay
+﻿namespace MultiThreadedOverlay
 {
+    using System;
+    using System.Numerics;
+    using ImGuiNET;
+
     public class OverlaySample2RandomCircles
     {
         public bool Show = false;

@@ -1,14 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Numerics;
-using System.Reflection;
-using System.IO;
-using Veldrid;
-using System.Runtime.CompilerServices;
-using ImGuiNET;
-
-namespace ClickableTransparentOverlay
+﻿namespace ClickableTransparentOverlay
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Numerics;
+    using System.Reflection;
+    using System.Runtime.CompilerServices;
+    using System.IO;
+    using ImGuiNET;
+    using Veldrid;
+
     /// <summary>
     /// A modified version of Veldrid.ImGui's ImGuiRenderer.
     /// Manages input for ImGui and handles rendering ImGui's DrawLists with Veldrid.
