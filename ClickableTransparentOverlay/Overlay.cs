@@ -24,7 +24,7 @@
         private Vector4 clearColor;
         private Dictionary<string, Texture> loadedImages;
         private static bool terminal = true;
-        
+
         private Thread renderThread;
         private volatile CancellationTokenSource cancellationTokenSource;
         private volatile bool overlayIsReady;
@@ -42,10 +42,9 @@
         /// Starts the overlay
         /// </summary>
         /// <returns>Task that finishes once the overlay is ready</returns>
-        private async Task Start()
+        public async Task Start()
         {
             cancellationTokenSource = new CancellationTokenSource();
-            
             renderThread = new Thread(async () =>
             {
                 window = new Sdl2Window(
@@ -75,18 +74,15 @@
                 
                 NativeMethods.InitTransparency(window.Handle);
                 NativeMethods.SetOverlayClickable(window.Handle, false);
-                
                 if (!overlayIsReady)
                 {
                     overlayIsReady = true;
                 }
 
                 await RunInfiniteLoop(cancellationTokenSource.Token);
-                
             });
             
             renderThread.Start();
-            
             await WaitHelpers.SpinWait(() => overlayIsReady);
         }
 
@@ -111,7 +107,6 @@
         {
             var stopwatch = new Stopwatch();
             stopwatch.Start();
-
             while (window.Exists && !cancellationToken.IsCancellationRequested)
             {
                 InputSnapshot snapshot = window.PumpEvents();
@@ -145,11 +140,10 @@
         /// <summary>
         /// Safely Closes the Overlay.
         /// </summary>
-        /// <returns>Task that finishes once the window is gone up to a maximum of 3 seconds.</returns>
-        public virtual async Task Close()
+        public virtual Task Close()
         {
             cancellationTokenSource.Cancel();
-            await WaitHelpers.SpinWait(() => window.Exists, TimeSpan.FromSeconds(3));
+            return Task.CompletedTask;
         }
 
         /// <summary>
@@ -267,7 +261,7 @@
         {
             if (renderThread.IsAlive)
             {
-                Close().Wait();
+                this.Close();
             }
 
             graphicsDevice.WaitForIdle();

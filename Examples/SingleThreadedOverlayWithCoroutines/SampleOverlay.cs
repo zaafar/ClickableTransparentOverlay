@@ -7,6 +7,9 @@
     using Coroutine;
     using ImGuiNET;
 
+    /// <summary>
+    /// Render Loop and Logic Loop are not independent. 
+    /// </summary>
     internal class SampleOverlay : Overlay
     {
         private CoroutineHandlerInstance renderCoroutines;
@@ -50,7 +53,7 @@
             ImGui.End();
             if (!isRunning)
             {
-                _ = Close();
+                this.Close();
             }
 
             return Task.CompletedTask;
