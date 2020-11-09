@@ -27,6 +27,7 @@
 
         public float ReappearTimeRemaining = 0;
 
+        public bool LogicThreadCloseOverlay = false;
 
         public State()
         {

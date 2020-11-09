@@ -14,9 +14,6 @@
         private const int WS_EX_LAYERED = 0x80000;
         private const int WS_EX_TRANSPARENT = 0x20;
 
-        private const int SW_HIDE = 0x00;
-        private const int SW_SHOW = 0x05;
-
         private static bool isClickable = true;
         private static IntPtr GWL_EXSTYLE_CLICKABLE = IntPtr.Zero;
         private static IntPtr GWL_EXSTYLE_NOT_CLICKABLE = IntPtr.Zero;
@@ -62,23 +59,6 @@
             {
                 SetWindowLongPtr(handle, GWL_EXSTYLE, GWL_EXSTYLE_NOT_CLICKABLE);
                 isClickable = false;
-            }
-        }
-
-        /// <summary>
-        /// Allows showing/hiding the console window.
-        /// </summary>
-        internal static void SetConsoleWindow(bool visiable)
-        {
-            if (visiable)
-            {
-                var handle = GetConsoleWindow();
-                ShowWindow(handle, SW_SHOW);
-            }
-            else
-            {
-                var handle = GetConsoleWindow();
-                ShowWindow(handle, SW_HIDE);
             }
         }
 
@@ -135,12 +115,6 @@
 
         [DllImport("user32.dll", EntryPoint = "SetWindowLongPtr")]
         private static extern IntPtr SetWindowLongPtr(IntPtr hWnd, int nIndex, IntPtr dwNewLong);
-
-        [DllImport("kernel32.dll")]
-        private static extern IntPtr GetConsoleWindow();
-
-        [DllImport("user32.dll", EntryPoint = "ShowWindow", SetLastError = true)]
-        private static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
 
         [StructLayout(LayoutKind.Sequential)]
         private struct Margins

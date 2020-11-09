@@ -51,7 +51,12 @@
             {
                 Thread.Sleep(TimeSpan.FromSeconds(state.SleepInSeconds));
                 state.RequestLogicThreadSleep = false;
+            }
+
+            if (state.LogicThreadCloseOverlay)
+            {
                 Close();
+                state.LogicThreadCloseOverlay = false;
             }
 
             state.OverlaySample2.Update();
@@ -162,9 +167,14 @@
                 Thread.Sleep(TimeSpan.FromSeconds(state.SleepInSeconds));
             }
 
-            if (ImGui.Button($"Sleep Logic Thread for {state.SleepInSeconds} and then Close Overlay"))
+            if (ImGui.Button($"Sleep Logic Thread for {state.SleepInSeconds}"))
             {
                 state.RequestLogicThreadSleep = true;
+            }
+
+            if (ImGui.Button($"Request Logic Thread to close Overlay."))
+            {
+                state.LogicThreadCloseOverlay = true;
             }
 
             ImGui.SliderInt("Logical Thread Delay(ms)", ref state.LogicTickDelayInMilliseconds, 1, 1000);
@@ -172,11 +182,6 @@
             if (ImGui.Button("Toggle ImGui Demo"))
             {
                 state.ShowImGuiDemo = !state.ShowImGuiDemo;
-            }
-
-            if (ImGui.Button("Toggle Terminal"))
-            {
-                TerminalWindow = !TerminalWindow;
             }
 
             ImGui.NewLine();

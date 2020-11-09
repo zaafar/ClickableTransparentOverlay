@@ -23,7 +23,6 @@
         private ImGuiController imController;
         private Vector4 clearColor;
         private Dictionary<string, Texture> loadedImages;
-        private static bool terminal = true;
 
         private Thread renderThread;
         private volatile CancellationTokenSource cancellationTokenSource;
@@ -143,23 +142,6 @@
         public virtual void Close()
         {
             cancellationTokenSource.Cancel();
-        }
-
-        /// <summary>
-        /// Gets or sets a value indicating whether to hide the terminal window.
-        /// </summary>
-        public static bool TerminalWindow
-        {
-            get => terminal;
-            set
-            {
-                if (value != terminal)
-                {
-                    NativeMethods.SetConsoleWindow(value);
-                }
-
-                terminal = value;
-            }
         }
 
         /// <summary>
