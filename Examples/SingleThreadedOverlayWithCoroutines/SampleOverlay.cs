@@ -8,7 +8,7 @@
     using ImGuiNET;
 
     /// <summary>
-    /// Render Loop and Logic Loop are not independent. 
+    /// Render Loop and Logic Loop are synchronized.
     /// </summary>
     internal class SampleOverlay : Overlay
     {
