@@ -195,7 +195,6 @@
             }
 
             ImGui.End();
-            return;
         }
 
         private void RenderOverlaySample1()

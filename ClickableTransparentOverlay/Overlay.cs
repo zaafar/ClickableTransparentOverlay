@@ -260,7 +260,7 @@
         {
             if (renderThread.IsAlive)
             {
-                this.Close();
+                Close();
             }
 
             graphicsDevice.WaitForIdle();
