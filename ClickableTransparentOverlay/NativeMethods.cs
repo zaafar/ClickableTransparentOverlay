@@ -1,10 +1,10 @@
-﻿using System;
-using System.Drawing;
-using System.Numerics;
-using System.Runtime.InteropServices;
-
-namespace ClickableTransparentOverlay
+﻿namespace ClickableTransparentOverlay
 {
+    using System;
+    using System.Drawing;
+    using System.Numerics;
+    using System.Runtime.InteropServices;
+
     /// <summary>
     /// This class allow user to access Win32 API functions.
     /// </summary>

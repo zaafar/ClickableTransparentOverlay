@@ -1,16 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Numerics;
-using System.Threading;
-using System.Threading.Tasks;
-using Veldrid;
-using Veldrid.ImageSharp;
-using Veldrid.Sdl2;
-using Veldrid.StartupUtilities;
-
-namespace ClickableTransparentOverlay
+﻿namespace ClickableTransparentOverlay
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Diagnostics;
+    using System.Numerics;
+    using System.Threading;
+    using System.Threading.Tasks;
+    using Veldrid;
+    using Veldrid.ImageSharp;
+    using Veldrid.Sdl2;
+    using Veldrid.StartupUtilities;
+
     // TODO: Implement overlay info, warn, error logger.
     /// <summary>
     /// A class to create clickable transparent overlay.
@@ -24,7 +24,7 @@ namespace ClickableTransparentOverlay
         private Vector4 clearColor;
         private Dictionary<string, Texture> loadedImages;
         private static bool terminal = true;
-        
+
         private Thread renderThread;
         private volatile CancellationTokenSource cancellationTokenSource;
         private volatile bool overlayIsReady;
@@ -41,11 +41,10 @@ namespace ClickableTransparentOverlay
         /// <summary>
         /// Starts the overlay
         /// </summary>
-        /// <returns>Task that finishes once the overlay is ready</returns>
-        private async Task Start()
+        /// <returns>A Task that finishes once the overlay window is ready</returns>
+        public async Task Start()
         {
             cancellationTokenSource = new CancellationTokenSource();
-            
             renderThread = new Thread(async () =>
             {
                 window = new Sdl2Window(
@@ -75,26 +74,23 @@ namespace ClickableTransparentOverlay
                 
                 NativeMethods.InitTransparency(window.Handle);
                 NativeMethods.SetOverlayClickable(window.Handle, false);
-                
                 if (!overlayIsReady)
                 {
                     overlayIsReady = true;
                 }
 
                 await RunInfiniteLoop(cancellationTokenSource.Token);
-                
             });
             
             renderThread.Start();
-            
             await WaitHelpers.SpinWait(() => overlayIsReady);
         }
 
         /// <summary>
-        /// Starts the overlay and waits for the overlay to be closed.
+        /// Starts the overlay and waits for the overlay window to be closed.
         /// </summary>
-        /// <returns>A task that finishes once the overlay closes</returns>
-        public async Task Run()
+        /// <returns>A task that finishes once the overlay window closes</returns>
+        public virtual async Task Run()
         {
             if (!overlayIsReady)
             {
@@ -111,7 +107,6 @@ namespace ClickableTransparentOverlay
         {
             var stopwatch = new Stopwatch();
             stopwatch.Start();
-
             while (window.Exists && !cancellationToken.IsCancellationRequested)
             {
                 InputSnapshot snapshot = window.PumpEvents();
@@ -145,11 +140,9 @@ namespace ClickableTransparentOverlay
         /// <summary>
         /// Safely Closes the Overlay.
         /// </summary>
-        /// <returns>Task that finishes once the window is gone up to a maximum of 3 seconds.</returns>
-        public async Task Close()
+        public virtual void Close()
         {
             cancellationTokenSource.Cancel();
-            await WaitHelpers.SpinWait(() => window.Exists, TimeSpan.FromSeconds(3));
         }
 
         /// <summary>
@@ -267,7 +260,7 @@ namespace ClickableTransparentOverlay
         {
             if (renderThread.IsAlive)
             {
-                Close().Wait();
+                Close();
             }
 
             graphicsDevice.WaitForIdle();
@@ -276,7 +269,6 @@ namespace ClickableTransparentOverlay
             graphicsDevice.WaitForIdle();
             graphicsDevice.Dispose();
             loadedImages.Clear();
-            NativeMethods.SetConsoleWindow(true);
         }
     }
 }

@@ -1,14 +1,14 @@
-﻿using System;
-using System.Diagnostics;
-using System.IO;
-using System.Numerics;
-using System.Threading;
-using System.Threading.Tasks;
-using ClickableTransparentOverlay;
-using ImGuiNET;
-
-namespace DriverProgram
+﻿namespace MultiThreadedOverlay
 {
+    using System;
+    using System.Diagnostics;
+    using System.IO;
+    using System.Numerics;
+    using System.Threading;
+    using System.Threading.Tasks;
+    using ClickableTransparentOverlay;
+    using ImGuiNET;
+
     /// <summary>
     /// Render Loop and Logic Loop are independent from each other. 
     /// </summary>
@@ -35,7 +35,13 @@ namespace DriverProgram
             
             logicThread.Start();
         }
-        
+
+        public override void Close()
+        {
+            base.Close();
+            this.state.IsRunning = false;
+        }
+
         private void LogicUpdate(float updateDeltaTicks)
         {
             state.LogicTicksCounter.Increment();
@@ -45,13 +51,14 @@ namespace DriverProgram
             {
                 Thread.Sleep(TimeSpan.FromSeconds(state.SleepInSeconds));
                 state.RequestLogicThreadSleep = false;
+                Close();
             }
 
             state.OverlaySample2.Update();
             Thread.Sleep(state.LogicTickDelayInMilliseconds); //Not accurate at all as a mechanism for limiting thread runs
         }
 
-        protected override async Task Render()
+        protected override Task Render()
         {
             var deltaSeconds = ImGui.GetIO().DeltaTime;
             
@@ -67,8 +74,7 @@ namespace DriverProgram
                 {
                     state.Visible = true;
                 }
-
-                return;
+                return Task.CompletedTask;
             }
             
             state.RenderFramesCounter.Increment();
@@ -96,29 +102,28 @@ namespace DriverProgram
 
             if (state.ShowClickableMenu)
             {
-                if (await RenderMainMenu()) return;
+                RenderMainMenu();
             }
+
+            return Task.CompletedTask;
         }
 
-        private async Task<bool> RenderMainMenu()
+        private void RenderMainMenu()
         {
-            if (!ImGui.Begin("Overlay Main Menu", ref state.IsRunning, ImGuiWindowFlags.NoResize | ImGuiWindowFlags.AlwaysAutoResize))
+            bool isCollapsed = !ImGui.Begin(
+                "Overlay Main Menu",
+                ref state.IsRunning,
+                ImGuiWindowFlags.NoResize | ImGuiWindowFlags.AlwaysAutoResize);
+
+            if (!state.IsRunning || isCollapsed)
             {
-                // This is executed when this window is collapsed.
                 ImGui.End();
                 if (!state.IsRunning)
                 {
-                    await Close();
+                    Close();
                 }
 
-                return true;
-            }
-
-            if (!state.IsRunning)
-            {
-                ImGui.End();
-                await Close();
-                return true;
+                return;
             }
 
             ImGui.Text("Try pressing F12 button to show/hide this menu.");
@@ -126,7 +131,6 @@ namespace DriverProgram
             ImGui.Checkbox("Show non-clickable transparent overlay Sample 1.", ref state.ShowOverlaySample1);
             ImGui.Checkbox("Show full-screen non-clickable transparent overlay sample 2.", ref state.OverlaySample2.Show);
             ImGui.NewLine();
-
             if (ImGui.InputInt("Set To Display", ref state.CurrentDisplay))
             {
                 var box = GetDisplayBounds(state.CurrentDisplay);
@@ -138,8 +142,6 @@ namespace DriverProgram
 
             ImGui.SliderInt2("Set Position", ref state.resizeHelper[0], 0, 3840);
             ImGui.SliderInt2("Set Size", ref state.resizeHelper[2], 0, 3840);
-
-
             if (ImGui.Button("Resize"))
             {
                 Position = new Veldrid.Point(state.resizeHelper[0], state.resizeHelper[1]);
@@ -153,20 +155,20 @@ namespace DriverProgram
                 state.Visible = false;
                 state.ReappearTimeRemaining = state.Seconds;
             }
+
             ImGui.SliderInt("###sleeptime(sec)", ref state.SleepInSeconds, 1, 30);
             if (ImGui.Button($"Sleep Render Thread for {state.SleepInSeconds}"))
             {
                 Thread.Sleep(TimeSpan.FromSeconds(state.SleepInSeconds));
             }
-            if (ImGui.Button($"Sleep Logic Thread for {state.SleepInSeconds}"))
+
+            if (ImGui.Button($"Sleep Logic Thread for {state.SleepInSeconds} and then Close Overlay"))
             {
                 state.RequestLogicThreadSleep = true;
             }
-            
+
             ImGui.SliderInt("Logical Thread Delay(ms)", ref state.LogicTickDelayInMilliseconds, 1, 1000);
-           
             ImGui.NewLine();
-   
             if (ImGui.Button("Toggle ImGui Demo"))
             {
                 state.ShowImGuiDemo = !state.ShowImGuiDemo;
@@ -193,7 +195,6 @@ namespace DriverProgram
             }
 
             ImGui.End();
-            return false;
         }
 
         private void RenderOverlaySample1()
@@ -218,7 +219,6 @@ namespace DriverProgram
             ImGui.Text($"Render Delta (seconds): {ImGui.GetIO().DeltaTime}");
             ImGui.Text($"Total Logic Frames: {state.LogicTicksCounter.Count}");
             ImGui.Text($"Logic Delta (seconds): {state.LogicalDelta/Stopwatch.Frequency}");
-            
             ImGui.End();
         }
         

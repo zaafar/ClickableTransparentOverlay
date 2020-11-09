@@ -5,7 +5,11 @@ VisualStudioVersion = 16.0.30128.36
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ClickableTransparentOverlay", "ClickableTransparentOverlay\ClickableTransparentOverlay.csproj", "{210EB536-2C1F-48C0-BE59-6C945FC3E1F2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DriverProgram", "DriverProgram\DriverProgram.csproj", "{8F05BC9C-06E7-49F8-8417-E2E24F07726A}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Examples", "Examples", "{F6C1D869-184F-4743-8F42-DE971DE87C44}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SingleThreadedOverlayWithCoroutines", "Examples\SingleThreadedOverlayWithCoroutines\SingleThreadedOverlayWithCoroutines.csproj", "{6B396B8C-7691-461B-B8C7-4E9BC343279C}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MultiThreadedOverlay", "Examples\MultiThreadedOverlay\MultiThreadedOverlay.csproj", "{3BC0805A-D085-4E9B-B0A4-2B1200025C1C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -17,13 +21,21 @@ Global
 		{210EB536-2C1F-48C0-BE59-6C945FC3E1F2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{210EB536-2C1F-48C0-BE59-6C945FC3E1F2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{210EB536-2C1F-48C0-BE59-6C945FC3E1F2}.Release|Any CPU.Build.0 = Release|Any CPU
-		{8F05BC9C-06E7-49F8-8417-E2E24F07726A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{8F05BC9C-06E7-49F8-8417-E2E24F07726A}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{8F05BC9C-06E7-49F8-8417-E2E24F07726A}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{8F05BC9C-06E7-49F8-8417-E2E24F07726A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6B396B8C-7691-461B-B8C7-4E9BC343279C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6B396B8C-7691-461B-B8C7-4E9BC343279C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6B396B8C-7691-461B-B8C7-4E9BC343279C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6B396B8C-7691-461B-B8C7-4E9BC343279C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3BC0805A-D085-4E9B-B0A4-2B1200025C1C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3BC0805A-D085-4E9B-B0A4-2B1200025C1C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3BC0805A-D085-4E9B-B0A4-2B1200025C1C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3BC0805A-D085-4E9B-B0A4-2B1200025C1C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{6B396B8C-7691-461B-B8C7-4E9BC343279C} = {F6C1D869-184F-4743-8F42-DE971DE87C44}
+		{3BC0805A-D085-4E9B-B0A4-2B1200025C1C} = {F6C1D869-184F-4743-8F42-DE971DE87C44}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {0CA675A0-B7AC-4B41-9E79-BFD0DD4F8285}
