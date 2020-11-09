@@ -53,7 +53,7 @@
             ImGui.End();
             if (!isRunning)
             {
-                this.Close();
+                Close();
             }
 
             return Task.CompletedTask;

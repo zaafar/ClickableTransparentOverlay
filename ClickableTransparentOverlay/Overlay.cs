@@ -41,7 +41,7 @@
         /// <summary>
         /// Starts the overlay
         /// </summary>
-        /// <returns>Task that finishes once the overlay is ready</returns>
+        /// <returns>A Task that finishes once the overlay window is ready</returns>
         public async Task Start()
         {
             cancellationTokenSource = new CancellationTokenSource();
@@ -87,9 +87,9 @@
         }
 
         /// <summary>
-        /// Starts the overlay and waits for the overlay to be closed.
+        /// Starts the overlay and waits for the overlay window to be closed.
         /// </summary>
-        /// <returns>A task that finishes once the overlay closes</returns>
+        /// <returns>A task that finishes once the overlay window closes</returns>
         public virtual async Task Run()
         {
             if (!overlayIsReady)
@@ -140,10 +140,9 @@
         /// <summary>
         /// Safely Closes the Overlay.
         /// </summary>
-        public virtual Task Close()
+        public virtual void Close()
         {
             cancellationTokenSource.Cancel();
-            return Task.CompletedTask;
         }
 
         /// <summary>
@@ -270,7 +269,6 @@
             graphicsDevice.WaitForIdle();
             graphicsDevice.Dispose();
             loadedImages.Clear();
-            NativeMethods.SetConsoleWindow(true);
         }
     }
 }

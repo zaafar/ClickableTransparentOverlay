@@ -36,11 +36,10 @@
             logicThread.Start();
         }
 
-        public override Task Close()
+        public override void Close()
         {
             base.Close();
             this.state.IsRunning = false;
-            return Task.CompletedTask;
         }
 
         private void LogicUpdate(float updateDeltaTicks)
@@ -52,7 +51,7 @@
             {
                 Thread.Sleep(TimeSpan.FromSeconds(state.SleepInSeconds));
                 state.RequestLogicThreadSleep = false;
-                this.Close();
+                Close();
             }
 
             state.OverlaySample2.Update();
@@ -75,7 +74,6 @@
                 {
                     state.Visible = true;
                 }
-
                 return Task.CompletedTask;
             }
             
@@ -117,14 +115,14 @@
                 ref state.IsRunning,
                 ImGuiWindowFlags.NoResize | ImGuiWindowFlags.AlwaysAutoResize);
 
-            if (!state.IsRunning)
-            {
-                this.Close();
-            }
-
-            if (isCollapsed)
+            if (!state.IsRunning || isCollapsed)
             {
                 ImGui.End();
+                if (!state.IsRunning)
+                {
+                    Close();
+                }
+
                 return;
             }
 
