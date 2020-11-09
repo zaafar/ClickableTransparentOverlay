@@ -161,22 +161,25 @@
                 state.ReappearTimeRemaining = state.Seconds;
             }
 
+            ImGui.NewLine();
             ImGui.SliderInt("###sleeptime(sec)", ref state.SleepInSeconds, 1, 30);
-            if (ImGui.Button($"Sleep Render Thread for {state.SleepInSeconds}"))
+            if (ImGui.Button($"Sleep Render Thread for {state.SleepInSeconds} seconds"))
             {
                 Thread.Sleep(TimeSpan.FromSeconds(state.SleepInSeconds));
             }
 
-            if (ImGui.Button($"Sleep Logic Thread for {state.SleepInSeconds}"))
+            if (ImGui.Button($"Sleep Logic Thread for {state.SleepInSeconds} seconds"))
             {
                 state.RequestLogicThreadSleep = true;
             }
 
+            ImGui.NewLine();
             if (ImGui.Button($"Request Logic Thread to close Overlay."))
             {
                 state.LogicThreadCloseOverlay = true;
             }
 
+            ImGui.NewLine();
             ImGui.SliderInt("Logical Thread Delay(ms)", ref state.LogicTickDelayInMilliseconds, 1, 1000);
             ImGui.NewLine();
             if (ImGui.Button("Toggle ImGui Demo"))
