@@ -33,10 +33,10 @@
 
   <ItemGroup>
     <PackageReference Include="ImGui.NET" Version="1.78.0" />
-    <PackageReference Include="Veldrid" Version="4.9.0-g6e9e71e698" />
-    <PackageReference Include="Veldrid.ImageSharp" Version="4.9.0-g6e9e71e698" />
-    <PackageReference Include="Veldrid.Sdl2" Version="4.9.0-g6e9e71e698" />
-    <PackageReference Include="Veldrid.StartupUtilities" Version="4.9.0-g6e9e71e698" />
+    <PackageReference Include="Veldrid" Version="4.9.0-g46252eb6df" />
+    <PackageReference Include="Veldrid.ImageSharp" Version="4.9.0-g46252eb6df" />
+    <PackageReference Include="Veldrid.Sdl2" Version="4.9.0-g46252eb6df" />
+    <PackageReference Include="Veldrid.StartupUtilities" Version="4.9.0-g46252eb6df" />
   </ItemGroup>
 
 </Project>
