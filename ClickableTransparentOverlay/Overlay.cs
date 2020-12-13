@@ -70,7 +70,8 @@
                     graphicsDevice.MainSwapchain.Resize((uint)window.Width, (uint)window.Height);
                     imController.WindowResized(window.Width, window.Height);
                 };
-                
+
+                NativeMethods.InitKeyTimeoutMechanism();
                 NativeMethods.InitTransparency(window.Handle);
                 NativeMethods.SetOverlayClickable(window.Handle, false);
                 if (!overlayIsReady)

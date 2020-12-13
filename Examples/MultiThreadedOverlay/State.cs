@@ -12,7 +12,6 @@
         public int[] resizeHelper = new int[4] {0, 0, 2560, 1440};
         public int Seconds = 5;
         public int CurrentDisplay = 0;
-        public float Cooldown0X7Bkey = 0;
         public bool IsRunning = true;
         public bool Visible;
 

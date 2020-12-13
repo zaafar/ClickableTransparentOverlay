@@ -66,12 +66,7 @@
         protected override Task Render()
         {
             var deltaSeconds = ImGui.GetIO().DeltaTime;
-            
-            if (state.Cooldown0X7Bkey > 0)
-            {
-                state.Cooldown0X7Bkey -= deltaSeconds;
-            }
-            
+
             if (!state.Visible)
             {
                 state.ReappearTimeRemaining -= deltaSeconds;
@@ -84,10 +79,9 @@
             
             state.RenderFramesCounter.Increment();
             
-            if (NativeMethods.IsKeyPressed(0x7B) && !(state.Cooldown0X7Bkey > 0)) //F12.
+            if (NativeMethods.IsKeyPressedAndNotTimeout(0x7B)) //F12.
             {
                 state.ShowClickableMenu = !state.ShowClickableMenu;
-                state.Cooldown0X7Bkey = 0.2f;
             }
             
             if (state.ShowImGuiDemo)

@@ -1,6 +1,7 @@
 ﻿namespace ClickableTransparentOverlay
 {
     using System;
+    using System.Diagnostics;
     using System.Drawing;
     using System.Numerics;
     using System.Runtime.InteropServices;
@@ -19,6 +20,9 @@
         private static IntPtr GWL_EXSTYLE_NOT_CLICKABLE = IntPtr.Zero;
 
         private const int KEY_PRESSED = 0x8000;
+
+        private static Stopwatch sw = new Stopwatch();
+        private static long[] nVirtKeyTimeouts = new long[256]; // Total VirtKeys are 256.
 
         /// <summary>
         /// Gets a value indicating whether the overlay is clickable or not.
@@ -39,6 +43,15 @@
 
             Margins margins = Margins.FromRectangle(new Rectangle(-1, -1, -1, -1));
             DwmExtendFrameIntoClientArea(handle, ref margins);
+        }
+
+        internal static void InitKeyTimeoutMechanism()
+        {
+            sw.Start();
+            for (int i = 0; i < nVirtKeyTimeouts.Length; i++)
+            {
+                nVirtKeyTimeouts[i] = sw.ElapsedMilliseconds;
+            }
         }
 
         /// <summary>
@@ -81,17 +94,43 @@
 
         /// <summary>
         /// Returns true if the key is pressed.
-        /// For keycode information visit: https://www.pinvoke.net/default.aspx/user32.getkeystate
-        /// NOTE: This function can return True multiple times per single keypress.
-        ///       It depends on how long the user pressed the key for and
-        ///       how many times caller called this function while the key was pressed.
-        ///       Caller of this function is responsible to mitigate this behaviour.
+        /// For keycode information visit: https://www.pinvoke.net/default.aspx/user32.getkeystate.
+        ///
+        /// This function can return True multiple times (in multiple calls) per single keypress.
+        /// It depends on how long the user pressed the key for and how many times caller called
+        /// this function while the key was pressed. Caller of this function is responsible to
+        /// mitigate this behaviour.
         /// </summary>
-        /// <param name="nVirtKey">key to look for.</param>
+        /// <param name="nVirtKey">key code to look.</param>
         /// <returns>weather the key is pressed or not.</returns>
         public static bool IsKeyPressed(int nVirtKey)
         {
             return Convert.ToBoolean(GetKeyState(nVirtKey) & KEY_PRESSED);
+        }
+
+        /// <summary>
+        /// A wrapper function around <see cref="IsKeyPressed"/> to ensure a single key-press
+        /// yield a single true even if this function is called multiple times.
+        ///
+        /// This function might miss a key-press, which may degrade the user-experience,
+        /// so use this function to the minimum e.g. just to enable/disable/show/hide the overlay.
+        /// And, it would be nice to allow application user to configure the timeout value to
+        /// their liking.
+        /// </summary>
+        /// <param name="nVirtKey">key to look for, for details read <see cref="IsKeyPressed"/> description.</param>
+        /// <param name="timeout">timeout in milliseconds</param>
+        /// <returns>true if the key is pressed and key is not in timeout.</returns>
+        public static bool IsKeyPressedAndNotTimeout(int nVirtKey, int timeout = 200)
+        {
+            var actual = IsKeyPressed(nVirtKey);
+            var currTime = sw.ElapsedMilliseconds;
+            if (actual && currTime > nVirtKeyTimeouts[nVirtKey])
+            {
+                nVirtKeyTimeouts[nVirtKey] = currTime + timeout;
+                return true;
+            }
+
+            return false;
         }
 
         [DllImport("USER32.dll")]
