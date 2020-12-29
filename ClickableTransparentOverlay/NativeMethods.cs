@@ -21,7 +21,7 @@
 
         private const int KEY_PRESSED = 0x8000;
 
-        private static Stopwatch sw = new Stopwatch();
+        private static Stopwatch sw = Stopwatch.StartNew();
         private static long[] nVirtKeyTimeouts = new long[256]; // Total VirtKeys are 256.
 
         /// <summary>
@@ -43,15 +43,6 @@
 
             Margins margins = Margins.FromRectangle(new Rectangle(-1, -1, -1, -1));
             DwmExtendFrameIntoClientArea(handle, ref margins);
-        }
-
-        internal static void InitKeyTimeoutMechanism()
-        {
-            sw.Start();
-            for (int i = 0; i < nVirtKeyTimeouts.Length; i++)
-            {
-                nVirtKeyTimeouts[i] = sw.ElapsedMilliseconds;
-            }
         }
 
         /// <summary>

@@ -4,7 +4,7 @@
 
     public class State
     {
-        public readonly Stopwatch Watch = new Stopwatch();
+        public readonly Stopwatch Watch = Stopwatch.StartNew();
         public readonly OverlaySample2RandomCircles OverlaySample2 = new OverlaySample2RandomCircles();
         public bool ShowClickableMenu = true;
         public bool ShowOverlaySample1 = true;
@@ -27,10 +27,5 @@
         public float ReappearTimeRemaining = 0;
 
         public bool LogicThreadCloseOverlay = false;
-
-        public State()
-        {
-            Watch.Start();
-        }
     }
 }

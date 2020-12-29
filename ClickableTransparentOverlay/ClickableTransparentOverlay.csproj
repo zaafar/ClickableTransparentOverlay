@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFramework>netstandard2.1</TargetFramework>
 	<GenerateDocumentationFile>true</GenerateDocumentationFile>
     <Version>3.1.0</Version>
     <Authors>Zaafar</Authors>
@@ -33,10 +33,10 @@
 
   <ItemGroup>
     <PackageReference Include="ImGui.NET" Version="1.78.0" />
-    <PackageReference Include="Veldrid" Version="4.9.0-g46252eb6df" />
-    <PackageReference Include="Veldrid.ImageSharp" Version="4.9.0-g46252eb6df" />
-    <PackageReference Include="Veldrid.Sdl2" Version="4.9.0-g46252eb6df" />
-    <PackageReference Include="Veldrid.StartupUtilities" Version="4.9.0-g46252eb6df" />
+    <PackageReference Include="Veldrid" Version="4.9.0-gea8bec717f" />
+    <PackageReference Include="Veldrid.ImageSharp" Version="4.9.0-gea8bec717f" />
+    <PackageReference Include="Veldrid.Sdl2" Version="4.9.0-gea8bec717f" />
+    <PackageReference Include="Veldrid.StartupUtilities" Version="4.9.0-gea8bec717f" />
   </ItemGroup>
 
 </Project>

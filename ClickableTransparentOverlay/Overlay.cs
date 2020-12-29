@@ -3,7 +3,6 @@
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
-    using System.Numerics;
     using System.Threading;
     using System.Threading.Tasks;
     using Veldrid;
@@ -21,7 +20,6 @@
         private GraphicsDevice graphicsDevice;
         private CommandList commandList;
         private ImGuiController imController;
-        private Vector4 clearColor;
         private Dictionary<string, Texture> loadedImages;
 
         private Thread renderThread;
@@ -33,7 +31,6 @@
         /// </summary>
         public Overlay()
         {
-            clearColor = new Vector4(0.00f, 0.00f, 0.00f, 0.00f);
             loadedImages = new Dictionary<string, Texture>();
         }
 
@@ -71,7 +68,6 @@
                     imController.WindowResized(window.Width, window.Height);
                 };
 
-                NativeMethods.InitKeyTimeoutMechanism();
                 NativeMethods.InitTransparency(window.Handle);
                 NativeMethods.SetOverlayClickable(window.Handle, false);
                 if (!overlayIsReady)
@@ -105,8 +101,7 @@
         /// </summary>
         private async Task RunInfiniteLoop(CancellationToken cancellationToken)
         {
-            var stopwatch = new Stopwatch();
-            stopwatch.Start();
+            var stopwatch = Stopwatch.StartNew();
             while (window.Exists && !cancellationToken.IsCancellationRequested)
             {
                 InputSnapshot snapshot = window.PumpEvents();
@@ -120,7 +115,7 @@
 
                 commandList.Begin();
                 commandList.SetFramebuffer(graphicsDevice.MainSwapchain.Framebuffer);
-                commandList.ClearColorTarget(0, new RgbaFloat(clearColor.X, clearColor.Y, clearColor.Z, clearColor.W));
+                commandList.ClearColorTarget(0, new RgbaFloat(0.00f, 0.00f, 0.00f, 0.00f));
                 imController.Render(graphicsDevice, commandList);
                 commandList.End();
                 graphicsDevice.SubmitCommands(commandList);
@@ -175,7 +170,8 @@
         /// Gets the monitor bounds based on the monitor number.
         /// </summary>
         /// <param name="num">Monitor number starting from 0.</param>
-        /// <returns>screen box in which the window is moved to.</returns>
+        /// <returns>monitor bounds in case of valid monitor number
+        /// otherwise current overlay window bounds.</returns>
         public Rectangle GetDisplayBounds(int num)
         {
             int numDisplays = NumberVideoDisplays;
@@ -184,8 +180,7 @@
                 return new Rectangle(Position, Size);
             }
 
-            var bounds = new Rectangle();
-            SDL2Functions.SDL_GetDisplayBounds(num, ref bounds);
+            SDL2Functions.SDL_GetDisplayBounds(num, out Rectangle bounds);
             return bounds;
         }
 

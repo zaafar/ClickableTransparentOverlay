@@ -129,6 +129,7 @@
             ImGui.Text("Click X on top right of this menu to close the overlay.");
             ImGui.Checkbox("Show non-clickable transparent overlay Sample 1.", ref state.ShowOverlaySample1);
             ImGui.Checkbox("Show full-screen non-clickable transparent overlay sample 2.", ref state.OverlaySample2.Show);
+
             ImGui.NewLine();
             if (ImGui.InputInt("Set To Display", ref state.CurrentDisplay))
             {
@@ -211,16 +212,17 @@
                 ImGuiWindowFlags.AlwaysAutoResize |
                 ImGuiWindowFlags.NoResize);
 
-            ImGui.Text("I am sample Overlay");
+            ImGui.Text("I am sample Overlay to display stuff.");
+            ImGui.Text("You can not click me.");
+            ImGui.NewLine();
             ImGui.Text($"Number of displays {Overlay.NumberVideoDisplays}");
-            ImGui.Text("You can not click me");
-            ImGui.Text("I am here just to display stuff");
-            ImGui.Text($"Current Date: {DateTime.Now.Date}");
+            ImGui.Text($"Current Date: {DateTime.Now.Date.ToShortDateString()}");
             ImGui.Text($"Current Time: {DateTime.Now.TimeOfDay}");
             ImGui.Text($"Total Rendered Frames: {state.RenderFramesCounter.Count}");
-            ImGui.Text($"Render Delta (seconds): {ImGui.GetIO().DeltaTime}");
+            ImGui.Text($"Render Delta (seconds): {ImGui.GetIO().DeltaTime:F4}");
+            ImGui.Text($"Render FPS: {ImGui.GetIO().Framerate:F1}");
             ImGui.Text($"Total Logic Frames: {state.LogicTicksCounter.Count}");
-            ImGui.Text($"Logic Delta (seconds): {state.LogicalDelta/Stopwatch.Frequency}");
+            ImGui.Text($"Logic Delta (seconds): {state.LogicalDelta/Stopwatch.Frequency:F4}");
             ImGui.End();
         }
         

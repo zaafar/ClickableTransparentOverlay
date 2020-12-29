@@ -22,8 +22,7 @@
             renderCoroutines = new CoroutineHandlerInstance();
             data = string.Empty;
             isRunning = true;
-            sw = new Stopwatch();
-            sw.Start();
+            sw = Stopwatch.StartNew();
             renderCoroutines.Start(SlowServiceAsync());
         }
 
