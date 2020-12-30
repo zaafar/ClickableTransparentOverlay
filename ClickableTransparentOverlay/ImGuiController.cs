@@ -241,6 +241,21 @@
                         string resourceName = name + ".hlsl";
                         return GetEmbeddedResourceBytes(resourceName);
                     }
+                case GraphicsBackend.Vulkan:
+                    {
+                        string resourceName = name + ".spv";
+                        return GetEmbeddedResourceBytes(resourceName);
+                    }
+                case GraphicsBackend.OpenGL:
+                    {
+                        string resourceName = name + ".glsl";
+                        return GetEmbeddedResourceBytes(resourceName);
+                    }
+                case GraphicsBackend.OpenGLES:
+                    {
+                        string resourceName = name + ".glsles";
+                        return GetEmbeddedResourceBytes(resourceName);
+                    }
                 default:
                     throw new NotImplementedException();
             }

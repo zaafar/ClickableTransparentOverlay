@@ -50,11 +50,12 @@
                     1440,
                     SDL_WindowFlags.Borderless |
                     SDL_WindowFlags.AlwaysOnTop |
-                    SDL_WindowFlags.SkipTaskbar,
+                    SDL_WindowFlags.SkipTaskbar |
+                    SDL_WindowFlags.OpenGL,
                     false);
                 graphicsDevice = VeldridStartup.CreateGraphicsDevice(window,
-                    new GraphicsDeviceOptions(false, null, true),
-                    GraphicsBackend.Direct3D11);
+                    new GraphicsDeviceOptions(false, null, false, ResourceBindingModel.Default, true, true),
+                    GraphicsBackend.Vulkan);
                 commandList = graphicsDevice.ResourceFactory.CreateCommandList();
                 imController = new ImGuiController(
                     graphicsDevice,
@@ -105,6 +106,14 @@
             {
                 InputSnapshot snapshot = window.PumpEvents();
                 if (!window.Exists) { break; }
+
+                if (!VSync && MaxFPS > 0)
+                {
+                    while((float)stopwatch.ElapsedTicks / Stopwatch.Frequency < 1f / MaxFPS)
+                    {
+                        Thread.Sleep(1);
+                    }
+                }
 
                 var deltaSeconds = (float)stopwatch.ElapsedTicks / Stopwatch.Frequency;
                 stopwatch.Restart();
@@ -196,6 +205,35 @@
             {
                 Sdl2Native.SDL_SetWindowSize(window.SdlWindowHandle, value.X, value.Y);
             }
+        }
+
+        /// <summary>
+        /// Gets or sets the V-Sync for the overlay render loop.
+        /// </summary>
+        public bool VSync
+        {
+            get
+            {
+                return graphicsDevice.SyncToVerticalBlank;
+            }
+
+            set
+            {
+                if (value != graphicsDevice.SyncToVerticalBlank)
+                {
+                    graphicsDevice.SyncToVerticalBlank = value;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the value to limit the maximum FPS.
+        /// Set it to zero to have no limit on the FPS.
+        /// </summary>
+        public float MaxFPS
+        {
+            get;
+            set;
         }
 
         /// <summary>

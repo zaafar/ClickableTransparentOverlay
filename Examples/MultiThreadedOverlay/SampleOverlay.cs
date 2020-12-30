@@ -131,6 +131,19 @@
             ImGui.Checkbox("Show full-screen non-clickable transparent overlay sample 2.", ref state.OverlaySample2.Show);
 
             ImGui.NewLine();
+            bool vsync = VSync;
+            if (ImGui.Checkbox("V-Sync", ref vsync))
+            {
+                VSync = vsync;
+            }
+
+            float v = MaxFPS;
+            if (ImGui.DragFloat("FPS", ref v))
+            {
+                MaxFPS = v;
+            }
+
+            ImGui.NewLine();
             if (ImGui.InputInt("Set To Display", ref state.CurrentDisplay))
             {
                 var box = GetDisplayBounds(state.CurrentDisplay);
