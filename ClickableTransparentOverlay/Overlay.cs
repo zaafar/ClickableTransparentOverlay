@@ -10,7 +10,6 @@
     using Veldrid.Sdl2;
     using Veldrid.StartupUtilities;
 
-    // TODO: Implement overlay info, warn, error logger.
     /// <summary>
     /// A class to create clickable transparent overlay.
     /// </summary>
@@ -53,9 +52,9 @@
                     SDL_WindowFlags.AlwaysOnTop |
                     SDL_WindowFlags.SkipTaskbar,
                     false);
-                graphicsDevice = VeldridStartup.CreateDefaultD3D11GraphicsDevice(
+                graphicsDevice = VeldridStartup.CreateGraphicsDevice(window,
                     new GraphicsDeviceOptions(false, null, true),
-                    window);
+                    GraphicsBackend.Direct3D11);
                 commandList = graphicsDevice.ResourceFactory.CreateCommandList();
                 imController = new ImGuiController(
                     graphicsDevice,
