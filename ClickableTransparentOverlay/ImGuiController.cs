@@ -238,7 +238,7 @@
             {
                 case GraphicsBackend.Direct3D11:
                     {
-                        string resourceName = name + ".hlsl.bytes";
+                        string resourceName = name + ".hlsl";
                         return GetEmbeddedResourceBytes(resourceName);
                     }
                 default:
