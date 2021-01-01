@@ -1,7 +1,6 @@
 ﻿namespace SingleThreadedOverlayWithCoroutines
 {
     using System.Collections.Generic;
-    using System.Diagnostics;
     using System.Threading.Tasks;
     using ClickableTransparentOverlay;
     using Coroutine;
@@ -12,43 +11,71 @@
     /// </summary>
     internal class SampleOverlay : Overlay
     {
-        private CoroutineHandlerInstance renderCoroutines;
-        private Stopwatch sw;
-        private string data;
-        private bool isRunning;
+        private int data;
+        private string data2;
+        private bool isRunning = true;
+        private Event myevent = new Event();
+        private ActiveCoroutine myRoutine1;
+        private ActiveCoroutine myRoutine2;
 
         public SampleOverlay()
         {
-            renderCoroutines = new CoroutineHandlerInstance();
-            data = string.Empty;
-            isRunning = true;
-            sw = Stopwatch.StartNew();
-            renderCoroutines.Start(SlowServiceAsync());
+            myRoutine1 = CoroutineHandler.Start(TickServiceAsync(), name: "MyRoutine-1");
+            myRoutine2 = CoroutineHandler.Start(EventServiceAsync(), name: "MyRoutine-2");
         }
 
-        private void RenderCoroutineTick()
-        {
-            var deltaSeconds = (double)sw.ElapsedTicks / Stopwatch.Frequency;
-            sw.Restart();
-            renderCoroutines.Tick(deltaSeconds);
-        }
-
-        private IEnumerator<Wait> SlowServiceAsync()
+        private IEnumerator<Wait> TickServiceAsync()
         {
             int counter = 0;
             while (true)
             {
                 counter++;
                 yield return new Wait(3);
-                this.data = $"{counter}";
+                this.data = counter;
+            }
+        }
+
+        private IEnumerator<Wait> EventServiceAsync()
+        {
+            int counter = 0;
+            data2 = "Initializing Event Routine";
+            while (true)
+            {
+                yield return new Wait(myevent);
+                data2 = $"Event Raised x {++counter}";
             }
         }
 
         protected override Task Render()
         {
-            RenderCoroutineTick();
-            ImGui.Begin("Sample Overlay", ref isRunning);
-            ImGui.Text($"Data: {this.data}");
+            CoroutineHandler.Tick(ImGui.GetIO().DeltaTime);
+            if (data % 5 == 1)
+            {
+                CoroutineHandler.RaiseEvent(myevent);
+            }
+
+            ImGui.Begin("Sample Overlay", ref isRunning, ImGuiWindowFlags.AlwaysAutoResize);
+            ImGui.Text($"Total Time/Delta Time: {ImGui.GetTime():F3}/{ImGui.GetIO().DeltaTime:F3}");
+            ImGui.NewLine();
+
+            ImGui.Text($"Counter: {this.data}");
+            ImGui.Text($"{this.data2}");
+            ImGui.NewLine();
+
+            ImGui.Text($"Event Coroutines: {CoroutineHandler.EventCount}");
+            ImGui.Text($"Ticking Coroutines: {CoroutineHandler.TickingCount}");
+            ImGui.NewLine();
+
+            ImGui.Text($"Coroutine Name: {myRoutine1.Name}");
+            ImGui.Text($"Avg Execution Time: {myRoutine1.AverageMoveNextTime.TotalMilliseconds}");
+            ImGui.Text($"Total Executions: {myRoutine1.MoveNextCount}");
+            ImGui.Text($"Total Execution Time: {myRoutine1.TotalMoveNextTime.TotalMilliseconds}");
+            ImGui.NewLine();
+
+            ImGui.Text($"Coroutine Name: {myRoutine2.Name}");
+            ImGui.Text($"Avg Execution Time: {myRoutine2.AverageMoveNextTime.TotalMilliseconds}");
+            ImGui.Text($"Total Executions: {myRoutine2.MoveNextCount}");
+            ImGui.Text($"Total Execution Time: {myRoutine2.TotalMoveNextTime.TotalMilliseconds}");
             ImGui.End();
             if (!isRunning)
             {
