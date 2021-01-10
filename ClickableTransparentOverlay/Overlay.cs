@@ -104,7 +104,11 @@
             while (window.Exists && !cancellationToken.IsCancellationRequested)
             {
                 InputSnapshot snapshot = window.PumpEvents();
-                if (!window.Exists) { break; }
+                if (!window.Exists)
+                {
+                    Close();
+                    break;
+                }
 
                 var deltaSeconds = (float)stopwatch.ElapsedTicks / Stopwatch.Frequency;
                 stopwatch.Restart();

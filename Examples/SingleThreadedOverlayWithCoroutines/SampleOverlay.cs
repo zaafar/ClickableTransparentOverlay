@@ -14,6 +14,7 @@
         private int data;
         private string data2;
         private bool isRunning = true;
+        private bool demoWindow = false;
         private Event myevent = new Event();
         private ActiveCoroutine myRoutine1;
         private ActiveCoroutine myRoutine2;
@@ -76,10 +77,21 @@
             ImGui.Text($"Avg Execution Time: {myRoutine2.AverageMoveNextTime.TotalMilliseconds}");
             ImGui.Text($"Total Executions: {myRoutine2.MoveNextCount}");
             ImGui.Text($"Total Execution Time: {myRoutine2.TotalMoveNextTime.TotalMilliseconds}");
+
+            if (ImGui.Button("Show/Hide Demo Window"))
+            {
+                demoWindow = !demoWindow;
+            }
+
             ImGui.End();
             if (!isRunning)
             {
                 Close();
+            }
+
+            if (demoWindow)
+            {
+                ImGui.ShowDemoWindow(ref demoWindow);
             }
 
             return Task.CompletedTask;
