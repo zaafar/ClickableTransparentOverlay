@@ -5,6 +5,7 @@
     using System.Diagnostics;
     using System.Threading;
     using System.Threading.Tasks;
+    using ImGuiNET;
     using Veldrid;
     using Veldrid.ImageSharp;
     using Veldrid.Sdl2;
@@ -15,11 +16,16 @@
     /// </summary>
     public abstract class Overlay : IDisposable
     {
+        private readonly SDL_WindowFlags windowFlags =
+            SDL_WindowFlags.Borderless | SDL_WindowFlags.AlwaysOnTop | SDL_WindowFlags.SkipTaskbar;
+
+        private readonly Dictionary<string, Texture> loadedImages =
+            new Dictionary<string, Texture>();
+
         private volatile Sdl2Window window;
         private GraphicsDevice graphicsDevice;
         private CommandList commandList;
         private ImGuiController imController;
-        private Dictionary<string, Texture> loadedImages;
 
         private Thread renderThread;
         private volatile CancellationTokenSource cancellationTokenSource;
@@ -30,7 +36,6 @@
         /// </summary>
         public Overlay()
         {
-            loadedImages = new Dictionary<string, Texture>();
         }
 
         /// <summary>
@@ -42,23 +47,13 @@
             cancellationTokenSource = new CancellationTokenSource();
             renderThread = new Thread(async () =>
             {
-                window = new Sdl2Window(
-                    "Overlay",
-                    0,
-                    0,
-                    2560,
-                    1440,
-                    SDL_WindowFlags.Borderless |
-                    SDL_WindowFlags.AlwaysOnTop |
-                    SDL_WindowFlags.SkipTaskbar,
-                    false);
+                window = new Sdl2Window("Overlay", 0, 0, 2560, 1440, this.windowFlags, false);
                 graphicsDevice = VeldridStartup.CreateGraphicsDevice(window,
                     new GraphicsDeviceOptions(false, null, true),
                     GraphicsBackend.Direct3D11);
                 commandList = graphicsDevice.ResourceFactory.CreateCommandList();
                 imController = new ImGuiController(
                     graphicsDevice,
-                    graphicsDevice.MainSwapchain.Framebuffer.OutputDescription,
                     window.Width,
                     window.Height);
                 window.Resized += () =>
@@ -69,11 +64,14 @@
 
                 NativeMethods.InitTransparency(window.Handle);
                 NativeMethods.SetOverlayClickable(window.Handle, false);
+                AddFonts();
+                imController.Start();
                 if (!overlayIsReady)
                 {
                     overlayIsReady = true;
                 }
 
+                PostStart();
                 await RunInfiniteLoop(cancellationTokenSource.Token);
             });
             
@@ -134,6 +132,21 @@
         /// </summary>
         /// <returns>Task that finishes once per frame</returns>
         protected abstract Task Render();
+
+        /// <summary>
+        /// Adds default font to the ImGui.
+        /// This method can be overridden to add additional fonts
+        /// to the ImGui at the startup time.
+        /// </summary>
+        protected virtual void AddFonts()
+        {
+            ImGui.GetIO().Fonts.AddFontDefault();
+        }
+
+        /// <summary>
+        /// Steps to execute after the overlay has fully initialized.
+        /// </summary>
+        protected virtual void PostStart() { }
 
         /// <summary>
         /// Safely Closes the Overlay.

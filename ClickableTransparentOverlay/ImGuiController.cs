@@ -54,51 +54,52 @@
         /// <summary>
         /// Constructs a new ImGuiController.
         /// </summary>
-        public ImGuiController(GraphicsDevice gd, OutputDescription outputDescription, int width, int height)
+        public ImGuiController(GraphicsDevice gd, int width, int height)
         {
             _gd = gd;
             _windowWidth = width;
             _windowHeight = height;
 
-            IntPtr context = ImGui.CreateContext();
-            ImGui.SetCurrentContext(context);
-            ImGui.GetIO().Fonts.AddFontDefault();
-
-            CreateDeviceResources(gd, outputDescription);
+            ImGui.CreateContext();
             SetKeyMappings();
-
             SetPerFrameImGuiData(1f / 60f);
+        }
 
+        /// <summary>
+        /// Starts the ImGui Controller by creating required resources and first new frame.
+        /// </summary>
+        public void Start()
+        {
+            CreateDeviceResources();
             ImGui.NewFrame();
             _frameBegun = true;
         }
 
+        /// <summary>
+        /// Updates the controller with new window size information.
+        /// </summary>
+        /// <param name="width">width of the screen.</param>
+        /// <param name="height">height of the screen.</param>
         public void WindowResized(int width, int height)
         {
             _windowWidth = width;
             _windowHeight = height;
         }
 
-        public void DestroyDeviceObjects()
+        public void CreateDeviceResources()
         {
-            Dispose();
-        }
-
-        public void CreateDeviceResources(GraphicsDevice gd, OutputDescription outputDescription)
-        {
-            _gd = gd;
-            ResourceFactory factory = gd.ResourceFactory;
+            ResourceFactory factory = _gd.ResourceFactory;
             _vertexBuffer = factory.CreateBuffer(new BufferDescription(10000, BufferUsage.VertexBuffer | BufferUsage.Dynamic));
             _vertexBuffer.Name = "ImGui.NET Vertex Buffer";
             _indexBuffer = factory.CreateBuffer(new BufferDescription(2000, BufferUsage.IndexBuffer | BufferUsage.Dynamic));
             _indexBuffer.Name = "ImGui.NET Index Buffer";
-            RecreateFontDeviceTexture(gd);
+            RecreateFontDeviceTexture(_gd);
 
             _projMatrixBuffer = factory.CreateBuffer(new BufferDescription(64, BufferUsage.UniformBuffer | BufferUsage.Dynamic));
             _projMatrixBuffer.Name = "ImGui.NET Projection Buffer";
 
-            byte[] vertexShaderBytes = LoadEmbeddedShaderCode(gd.ResourceFactory, "imgui-vertex", ShaderStages.Vertex);
-            byte[] fragmentShaderBytes = LoadEmbeddedShaderCode(gd.ResourceFactory, "imgui-frag", ShaderStages.Fragment);
+            byte[] vertexShaderBytes = LoadEmbeddedShaderCode(_gd.ResourceFactory, "imgui-vertex", ShaderStages.Vertex);
+            byte[] fragmentShaderBytes = LoadEmbeddedShaderCode(_gd.ResourceFactory, "imgui-frag", ShaderStages.Fragment);
             _vertexShader = factory.CreateShader(new ShaderDescription(ShaderStages.Vertex, vertexShaderBytes, "main"));
             _fragmentShader = factory.CreateShader(new ShaderDescription(ShaderStages.Fragment, fragmentShaderBytes, "main"));
 
@@ -123,13 +124,13 @@
                 PrimitiveTopology.TriangleList,
                 new ShaderSetDescription(vertexLayouts, new[] { _vertexShader, _fragmentShader }),
                 new ResourceLayout[] { _layout, _textureLayout },
-                outputDescription,
+                _gd.MainSwapchain.Framebuffer.OutputDescription,
                 ResourceBindingModel.Default);
             _pipeline = factory.CreateGraphicsPipeline(ref pd);
 
             _mainResourceSet = factory.CreateResourceSet(new ResourceSetDescription(_layout,
                 _projMatrixBuffer,
-                gd.PointSampler));
+                _gd.PointSampler));
 
             _fontTextureResourceSet = factory.CreateResourceSet(new ResourceSetDescription(_textureLayout, _fontTextureView));
         }
