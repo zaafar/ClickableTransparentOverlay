@@ -252,19 +252,29 @@
         /// </summary>
         /// <param name="name">user friendly name given to the image.</param>
         /// <param name="image">image.</param>
+        /// <param name="mipmap">
+        /// a value indicating whether to create mipmap or not.
+        /// For more info, read <see cref="ImageSharpTexture"/> code.
+        /// </param>
+        /// <param name="srgb">
+        /// a value indicating whether pixel format is srgb or not.
+        /// For more info, read <see cref="ImageSharpTexture"/> code.
+        /// </param>
         /// <param name="handle">output pointer to the image in the graphic device.</param>
         /// <param name="width">width of the loaded texture.</param>
         /// <param name="height">width of the loaded texture.</param>
         public void AddOrGetImagePointer(
             string name,
             SixLabors.ImageSharp.Image<Rgba32> image,
+            bool mipmap,
+            bool srgb,
             out IntPtr handle,
             out uint width,
             out uint height)
         {
             if (!loadedImages.TryGetValue(name, out Texture texture))
             {
-                ImageSharpTexture imgSharpTexture = new ImageSharpTexture(image);
+                ImageSharpTexture imgSharpTexture = new ImageSharpTexture(image, mipmap, srgb);
                 texture = imgSharpTexture.CreateDeviceTexture(graphicsDevice, graphicsDevice.ResourceFactory);
                 loadedImages.Add(name, texture);
             }
