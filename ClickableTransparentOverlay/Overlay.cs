@@ -6,6 +6,7 @@
     using System.Threading;
     using System.Threading.Tasks;
     using ImGuiNET;
+    using SixLabors.ImageSharp.PixelFormats;
     using Veldrid;
     using Veldrid.ImageSharp;
     using Veldrid.Sdl2;
@@ -221,14 +222,10 @@
         /// cache the image internally rather than creating a new texture on every call,
         /// so this function can be called multiple times per frame.
         /// </summary>
-        /// <param name="filePath">
-        /// Path to the image on disk. If the image is loaded in the memory
-        /// save it on the disk before sending to this function. Reason for this
-        /// is to cache the Image Texture using filePath as the key.
-        /// </param>
+        /// <param name="filePath">Path to the image on disk.</param>
         /// <param name="handle">output pointer to the image in the graphic device.</param>
-        /// <param name="width">width of the loaded image.</param>
-        /// <param name="height">height of the loaded image.</param>
+        /// <param name="width">width of the loaded texture.</param>
+        /// <param name="height">height of the loaded texture.</param>
         public void AddOrGetImagePointer(
             string filePath,
             out IntPtr handle,
@@ -245,6 +242,55 @@
             width = texture.Width;
             height = texture.Height;
             handle = imController.GetOrCreateImGuiBinding(graphicsDevice.ResourceFactory, texture);
+        }
+
+        /// <summary>
+        /// Adds the image to the Graphic Device as a texture.
+        /// Then returns the pointer of the added texture. It also
+        /// cache the image internally rather than creating a new texture on every call,
+        /// so this function can be called multiple times per frame.
+        /// </summary>
+        /// <param name="name">user friendly name given to the image.</param>
+        /// <param name="image">image.</param>
+        /// <param name="handle">output pointer to the image in the graphic device.</param>
+        /// <param name="width">width of the loaded texture.</param>
+        /// <param name="height">width of the loaded texture.</param>
+        public void AddOrGetImagePointer(
+            string name,
+            SixLabors.ImageSharp.Image<Rgba32> image,
+            out IntPtr handle,
+            out uint width,
+            out uint height)
+        {
+            if (!loadedImages.TryGetValue(name, out Texture texture))
+            {
+                ImageSharpTexture imgSharpTexture = new ImageSharpTexture(image);
+                texture = imgSharpTexture.CreateDeviceTexture(graphicsDevice, graphicsDevice.ResourceFactory);
+                loadedImages.Add(name, texture);
+            }
+
+            width = texture.Width;
+            height = texture.Height;
+            handle = imController.GetOrCreateImGuiBinding(graphicsDevice.ResourceFactory, texture);
+        }
+
+        /// <summary>
+        /// Removes the image from the Overlay.
+        /// </summary>
+        /// <param name="name">
+        /// name or pathname which was used to
+        /// add the image in the first place.
+        /// </param>
+        /// <returns>true if image is removed otherwise false.</returns>
+        public bool RemoveImage(string name)
+        {
+            if (loadedImages.Remove(name, out Texture texture))
+            {
+                imController.RemoveImGuiBinding(texture);
+                return true;
+            }
+
+            return false;
         }
 
         /// <summary>
