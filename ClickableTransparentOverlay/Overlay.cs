@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
+    using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
     using ImGuiNET;
@@ -315,11 +316,20 @@
             }
 
             graphicsDevice.WaitForIdle();
+            this.RemoveAllImages();
             imController.Dispose();
             commandList.Dispose();
             graphicsDevice.WaitForIdle();
             graphicsDevice.Dispose();
-            loadedImages.Clear();
+        }
+
+        private void RemoveAllImages()
+        {
+            var images = this.loadedImages.Keys.ToArray();
+            for (int i = 0; i < images.Length; i++)
+            {
+                this.RemoveImage(images[i]);
+            }
         }
     }
 }
