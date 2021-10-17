@@ -179,8 +179,8 @@
             {
                 _autoViewsByTexture.Remove(texture);
                 _ownedResources.Remove(textureView);
-                textureView.Dispose();
                 RemoveImGuiBinding(textureView);
+                textureView.Dispose();
             }
         }
 

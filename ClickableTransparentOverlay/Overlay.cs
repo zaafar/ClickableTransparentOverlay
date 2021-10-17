@@ -297,6 +297,7 @@
             if (loadedImages.Remove(name, out Texture texture))
             {
                 imController.RemoveImGuiBinding(texture);
+                texture.Dispose();
                 return true;
             }
 
