@@ -124,6 +124,13 @@
             return false;
         }
 
+        /// <summary>
+        /// Sets the process as DPIAware.
+        /// </summary>
+        /// <returns>a boolean indicating whether the operaction was successful or not.</returns>
+        [DllImport("User32.dll")]
+        internal static extern bool SetProcessDPIAware();
+
         [DllImport("USER32.dll")]
         private static extern short GetKeyState(int nVirtKey);
 

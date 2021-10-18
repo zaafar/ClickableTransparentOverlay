@@ -41,6 +41,20 @@
         }
 
         /// <summary>
+        /// Initializes a new instance of the <see cref="Overlay"/> class.
+        /// </summary>
+        /// <param name="DPIAware">
+        /// should the overlay scale with windows scale value or not.
+        /// </param>
+        public Overlay(bool DPIAware)
+        {
+            if (DPIAware)
+            {
+                NativeMethods.SetProcessDPIAware();
+            }
+        }
+
+        /// <summary>
         /// Starts the overlay
         /// </summary>
         /// <returns>A Task that finishes once the overlay window is ready</returns>

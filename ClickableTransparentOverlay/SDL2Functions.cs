@@ -1,5 +1,6 @@
 ﻿namespace ClickableTransparentOverlay
 {
+    using System.Runtime.InteropServices;
     using Veldrid;
     using Veldrid.Sdl2;
 
@@ -8,6 +9,10 @@
         // Rectangle and SDL_Rect are same.
         private delegate int SDL_GetDisplayBounds_int_SDL_Rect_t(int displayIndex, out Rectangle rect);
         private static SDL_GetDisplayBounds_int_SDL_Rect_t s_SDL_GetDisplayBounds_int_SDL_Rect_t = Sdl2Native.LoadFunction<SDL_GetDisplayBounds_int_SDL_Rect_t>("SDL_GetDisplayBounds");
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+        private delegate bool SDL_SetHint_t(string name, string value);
+        private static SDL_SetHint_t SDL_SetHint_tfuncPtr = Sdl2Native.LoadFunction<SDL_SetHint_t>("SDL_SetHint");
 
         /// <summary>
         /// Gets the bounding box of the monitor display.
@@ -18,6 +23,11 @@
         public static int SDL_GetDisplayBounds(int displayIndex, out Rectangle rect)
         {
             return s_SDL_GetDisplayBounds_int_SDL_Rect_t(displayIndex, out rect);
+        }
+
+        public static bool SDL_SetHint(string name, string value)
+        {
+            return SDL_SetHint_tfuncPtr(name, value);
         }
     }
 }

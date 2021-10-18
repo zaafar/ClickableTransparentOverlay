@@ -20,6 +20,7 @@
         private ActiveCoroutine myRoutine2;
 
         public SampleOverlay()
+            : base(true)
         {
             myRoutine1 = CoroutineHandler.Start(TickServiceAsync(), name: "MyRoutine-1");
             myRoutine2 = CoroutineHandler.Start(EventServiceAsync(), name: "MyRoutine-2");
@@ -45,6 +46,11 @@
                 yield return new Wait(myevent);
                 data2 = $"Event Raised x {++counter}";
             }
+        }
+
+        protected override void AddFonts()
+        {
+            ImGui.GetIO().Fonts.AddFontFromFileTTF(@"C:\Windows\Fonts\segoeui.ttf", 36);
         }
 
         protected override Task Render()
