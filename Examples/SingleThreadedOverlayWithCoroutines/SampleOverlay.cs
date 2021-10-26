@@ -15,9 +15,9 @@
         private string data2;
         private bool isRunning = true;
         private bool demoWindow = false;
-        private Event myevent = new Event();
-        private ActiveCoroutine myRoutine1;
-        private ActiveCoroutine myRoutine2;
+        private readonly Event myevent = new();
+        private readonly ActiveCoroutine myRoutine1;
+        private readonly ActiveCoroutine myRoutine2;
 
         public SampleOverlay()
             : base(true)

@@ -21,8 +21,7 @@
         private readonly SDL_WindowFlags windowFlags =
             SDL_WindowFlags.Borderless | SDL_WindowFlags.AlwaysOnTop | SDL_WindowFlags.SkipTaskbar;
 
-        private readonly Dictionary<string, Texture> loadedImages =
-            new Dictionary<string, Texture>();
+        private readonly Dictionary<string, Texture> loadedImages = new();
 
         private volatile Sdl2Window window;
         private GraphicsDevice graphicsDevice;
@@ -249,7 +248,7 @@
         {
             if (!loadedImages.TryGetValue(filePath, out Texture texture))
             {
-                ImageSharpTexture imgSharpTexture = new ImageSharpTexture(filePath);
+                ImageSharpTexture imgSharpTexture = new(filePath);
                 texture = imgSharpTexture.CreateDeviceTexture(graphicsDevice, graphicsDevice.ResourceFactory);
                 loadedImages.Add(filePath, texture);
             }
@@ -289,7 +288,7 @@
         {
             if (!loadedImages.TryGetValue(name, out Texture texture))
             {
-                ImageSharpTexture imgSharpTexture = new ImageSharpTexture(image, mipmap, srgb);
+                ImageSharpTexture imgSharpTexture = new(image, mipmap, srgb);
                 texture = imgSharpTexture.CreateDeviceTexture(graphicsDevice, graphicsDevice.ResourceFactory);
                 loadedImages.Add(name, texture);
             }
