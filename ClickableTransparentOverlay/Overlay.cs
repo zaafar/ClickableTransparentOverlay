@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Linq;
+    using System.Runtime.InteropServices;
     using System.Threading;
     using System.Threading.Tasks;
     using ImGuiNET;
@@ -12,11 +13,11 @@
     using Veldrid.ImageSharp;
     using Veldrid.Sdl2;
     using Veldrid.StartupUtilities;
-
+    using System.Windows.Forms;
     /// <summary>
     /// A class to create clickable transparent overlay.
     /// </summary>
-    public abstract class Overlay : IDisposable
+    public  abstract partial class Overlay : IDisposable
     {
         private readonly SDL_WindowFlags windowFlags =
             SDL_WindowFlags.Borderless | SDL_WindowFlags.AlwaysOnTop | SDL_WindowFlags.SkipTaskbar;
@@ -107,7 +108,19 @@
 
             await WaitHelpers.SpinWait(() => !window.Exists);
         }
-
+        [DllImport("USER32.dll")]
+        private static extern short GetKeyState(int nVirtKey);
+        /// <summary>
+        /// IsKeyDown
+        /// </summary>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        public static bool IsKeyDown(Keys key) {
+            return GetKeyState((int)key) < 0;
+        }
+        static bool b_alt => IsKeyDown(Keys.LMenu);
+        static bool b_contr_alt => b_contrl && b_alt;
+        static bool b_contrl => IsKeyDown(Keys.LControlKey);
         /// <summary>
         /// Infinitely calls the Render task until the overlay closes.
         /// </summary>
@@ -122,7 +135,10 @@
                     Close();
                     break;
                 }
-
+                if (b_alt) {
+                    SetNotTransperent();
+                } else
+                    MakeTransparent();
                 var deltaSeconds = (float)stopwatch.ElapsedTicks / Stopwatch.Frequency;
                 stopwatch.Restart();
                 imController.Update(deltaSeconds, snapshot, window.Handle);

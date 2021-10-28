@@ -65,6 +65,7 @@
 
         protected override Task Render()
         {
+           
             var deltaSeconds = ImGui.GetIO().DeltaTime;
 
             if (!state.Visible)
@@ -124,11 +125,17 @@
 
                 return;
             }
-
+            ImGui.Text("Use [Alt] to activate the ability to move/Clck THIS frames");
             ImGui.Text("Try pressing F12 button to show/hide this menu.");
             ImGui.Text("Click X on top right of this menu to close the overlay.");
             ImGui.Checkbox("Show non-clickable transparent overlay Sample 1.", ref state.ShowOverlaySample1);
             ImGui.Checkbox("Show full-screen non-clickable transparent overlay sample 2.", ref state.OverlaySample2.Show);
+            ImGui.Button("This is a tooltip button");
+            if (ImGui.IsItemHovered()) {
+                ImGui.BeginTooltip();
+                ImGui.Text("Click for reload the map");
+                ImGui.EndTooltip();
+            }
 
             ImGui.NewLine();
             if (ImGui.InputInt("Set To Display", ref state.CurrentDisplay))
