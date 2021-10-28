@@ -137,8 +137,10 @@
                 }
                 if (b_alt) {
                     SetNotTransperent();
-                } else
+                } else {
                     MakeTransparent();
+                    //SetTrabsperentTwo();
+                }
                 var deltaSeconds = (float)stopwatch.ElapsedTicks / Stopwatch.Frequency;
                 stopwatch.Restart();
                 imController.Update(deltaSeconds, snapshot, window.Handle);

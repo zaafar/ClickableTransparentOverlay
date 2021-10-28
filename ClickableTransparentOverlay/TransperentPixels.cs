@@ -8,7 +8,12 @@ using Veldrid;
 
 namespace ClickableTransparentOverlay {
     public abstract partial class Overlay : IDisposable {
-
+        /// <summary>
+        /// Testing Opacity otion => not working att all :-(
+        /// </summary>
+        public void SetTrabsperentTwo() {
+            window.Opacity = 0.3f;
+        }
         Rectangle rect => window.Bounds;
         uint ntr_ex;
         const int GWL_STYLE = -16;
