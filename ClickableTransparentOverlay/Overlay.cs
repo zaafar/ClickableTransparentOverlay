@@ -18,10 +18,12 @@
     /// </summary>
     public abstract class Overlay : IDisposable
     {
+        private const string DefaultWindowName = "Overlay";
         private readonly SDL_WindowFlags windowFlags =
             SDL_WindowFlags.Borderless | SDL_WindowFlags.AlwaysOnTop | SDL_WindowFlags.SkipTaskbar;
 
         private readonly Dictionary<string, Texture> loadedImages = new();
+        private readonly string windowTitle;
 
         private volatile Sdl2Window window;
         private GraphicsDevice graphicsDevice;
@@ -32,10 +34,22 @@
         private volatile CancellationTokenSource cancellationTokenSource;
         private volatile bool overlayIsReady;
 
+        #region Constructors
+
         /// <summary>
         /// Initializes a new instance of the <see cref="Overlay"/> class.
         /// </summary>
-        public Overlay()
+        public Overlay() : this(DefaultWindowName)
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Overlay"/> class.
+        /// </summary>
+        /// <param name="windowTitle">
+        /// Title of the window created by the overlay
+        /// </param>
+        public Overlay(string windowTitle) : this(windowTitle, false)
         {
         }
 
@@ -45,13 +59,29 @@
         /// <param name="DPIAware">
         /// should the overlay scale with windows scale value or not.
         /// </param>
-        public Overlay(bool DPIAware)
+        public Overlay(bool DPIAware) : this(DefaultWindowName, DPIAware)
         {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Overlay"/> class.
+        /// </summary>
+        /// <param name="windowTitle">
+        /// Title of the window created by the overlay
+        /// </param>
+        /// <param name="DPIAware">
+        /// should the overlay scale with windows scale value or not.
+        /// </param>
+        public Overlay(string windowTitle, bool DPIAware)
+        {
+            this.windowTitle = windowTitle;
             if (DPIAware)
             {
                 NativeMethods.SetProcessDPIAware();
             }
         }
+
+        #endregion
 
         /// <summary>
         /// Starts the overlay
@@ -62,7 +92,7 @@
             cancellationTokenSource = new CancellationTokenSource();
             renderThread = new Thread(async () =>
             {
-                window = new Sdl2Window("Overlay", 0, 0, 2560, 1440, this.windowFlags, false);
+                window = new Sdl2Window(this.windowTitle, 0, 0, 2560, 1440, this.windowFlags, false);
                 graphicsDevice = VeldridStartup.CreateGraphicsDevice(window,
                     new GraphicsDeviceOptions(false, null, true),
                     GraphicsBackend.Direct3D11);
