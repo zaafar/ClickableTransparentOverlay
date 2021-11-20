@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
+    using System.IO;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
@@ -33,6 +34,12 @@
         private Thread renderThread;
         private volatile CancellationTokenSource cancellationTokenSource;
         private volatile bool overlayIsReady;
+
+        private bool replaceFont = false;
+        private ushort[] fontCustomGlyphRange;
+        private string fontPathName;
+        private float fontSize;
+        private FontGlyphRangeType fontLanguage;
 
         #region Constructors
 
@@ -92,7 +99,7 @@
             cancellationTokenSource = new CancellationTokenSource();
             renderThread = new Thread(async () =>
             {
-                window = new Sdl2Window(this.windowTitle, 0, 0, 2560, 1440, this.windowFlags, false);
+                window = new Sdl2Window(windowTitle, 0, 0, 2560, 1440, windowFlags, false);
                 graphicsDevice = VeldridStartup.CreateGraphicsDevice(window,
                     new GraphicsDeviceOptions(false, null, true),
                     GraphicsBackend.Direct3D11);
@@ -109,7 +116,6 @@
 
                 NativeMethods.InitTransparency(window.Handle);
                 NativeMethods.SetOverlayClickable(window.Handle, false);
-                AddFonts();
                 imController.Start();
                 if (!overlayIsReady)
                 {
@@ -166,6 +172,7 @@
                 commandList.End();
                 graphicsDevice.SubmitCommands(commandList);
                 graphicsDevice.SwapBuffers(graphicsDevice.MainSwapchain);
+                ReplaceFontIfRequired();
             }
 
             if (window.Exists)
@@ -179,19 +186,52 @@
         protected abstract Task Render();
 
         /// <summary>
-        /// Adds default font to the ImGui.
-        /// This method can be overridden to add additional fonts
-        /// to the ImGui at the startup time.
-        /// </summary>
-        protected virtual void AddFonts()
-        {
-            ImGui.GetIO().Fonts.AddFontDefault();
-        }
-
-        /// <summary>
         /// Steps to execute after the overlay has fully initialized.
         /// </summary>
         protected virtual void PostStart() { }
+
+        /// <summary>
+        /// Replaces the ImGui font with another one.
+        /// </summary>
+        /// <param name="pathName">pathname to the TTF font file.</param>
+        /// <param name="size">font size to load.</param>
+        /// <param name="language">supported language by the font.</param>
+        /// <returns>true if the font replacement is valid otherwise false.</returns>
+        public bool ReplaceFont(string pathName, int size, FontGlyphRangeType language)
+        {
+            if (!File.Exists(pathName))
+            {
+                return false;
+            }
+
+            fontPathName = pathName;
+            fontSize = size;
+            fontLanguage = language;
+            replaceFont = true;
+            fontCustomGlyphRange = null;
+            return true;
+        }
+
+        /// <summary>
+        /// Replaces the ImGui font with another one.
+        /// </summary>
+        /// <param name="pathName">pathname to the TTF font file.</param>
+        /// <param name="size">font size to load.</param>
+        /// <param name="glyphRange">custom glyph range of the font to load. Read <see cref="FontGlyphRangeType"/> for more detail.</param>
+        /// <returns>>true if the font replacement is valid otherwise false.</returns>
+        public bool ReplaceFont(string pathName, int size, ushort[] glyphRange)
+        {
+            if (!File.Exists(pathName))
+            {
+                return false;
+            }
+
+            fontPathName = pathName;
+            fontSize = size;
+            fontCustomGlyphRange = glyphRange;
+            replaceFont = true;
+            return true;
+        }
 
         /// <summary>
         /// Safely Closes the Overlay.
@@ -359,7 +399,7 @@
             }
 
             graphicsDevice.WaitForIdle();
-            this.RemoveAllImages();
+            RemoveAllImages();
             imController.Dispose();
             commandList.Dispose();
             graphicsDevice.WaitForIdle();
@@ -368,10 +408,67 @@
 
         private void RemoveAllImages()
         {
-            var images = this.loadedImages.Keys.ToArray();
+            var images = loadedImages.Keys.ToArray();
             for (int i = 0; i < images.Length; i++)
             {
-                this.RemoveImage(images[i]);
+                RemoveImage(images[i]);
+            }
+        }
+
+        private void ReplaceFontIfRequired()
+        {
+            if (replaceFont)
+            {
+                var io = ImGui.GetIO();
+                io.Fonts.Clear();
+                unsafe
+                {
+                    var config = ImGuiNative.ImFontConfig_ImFontConfig();
+                    if (fontCustomGlyphRange == null)
+                    {
+                        switch (fontLanguage)
+                        {
+                            case FontGlyphRangeType.English:
+                                io.Fonts.AddFontFromFileTTF(fontPathName, fontSize, config, io.Fonts.GetGlyphRangesDefault());
+                                break;
+                            case FontGlyphRangeType.ChineseSimplifiedCommon:
+                                io.Fonts.AddFontFromFileTTF(fontPathName, fontSize, config, io.Fonts.GetGlyphRangesChineseSimplifiedCommon());
+                                break;
+                            case FontGlyphRangeType.ChineseFull:
+                                io.Fonts.AddFontFromFileTTF(fontPathName, fontSize, config, io.Fonts.GetGlyphRangesChineseFull());
+                                break;
+                            case FontGlyphRangeType.Japanese:
+                                io.Fonts.AddFontFromFileTTF(fontPathName, fontSize, config, io.Fonts.GetGlyphRangesJapanese());
+                                break;
+                            case FontGlyphRangeType.Korean:
+                                io.Fonts.AddFontFromFileTTF(fontPathName, fontSize, config, io.Fonts.GetGlyphRangesKorean());
+                                break;
+                            case FontGlyphRangeType.Thai:
+                                io.Fonts.AddFontFromFileTTF(fontPathName, fontSize, config, io.Fonts.GetGlyphRangesThai());
+                                break;
+                            case FontGlyphRangeType.Vietnamese:
+                                io.Fonts.AddFontFromFileTTF(fontPathName, fontSize, config, io.Fonts.GetGlyphRangesVietnamese());
+                                break;
+                            case FontGlyphRangeType.Cyrillic:
+                                io.Fonts.AddFontFromFileTTF(fontPathName, fontSize, config, io.Fonts.GetGlyphRangesCyrillic());
+                                break;
+                            default:
+                                throw new Exception("Font Glyph Range not supported.");
+                        }
+                    }
+                    else
+                    {
+                        fixed (ushort* p = &fontCustomGlyphRange[0])
+                        {
+                            io.Fonts.AddFontFromFileTTF(fontPathName, fontSize, config, new IntPtr(p));
+                        }
+                    }
+
+                    imController.RecreateFontDeviceTexture(graphicsDevice);
+                    ImGuiNative.ImFontConfig_destroy(config);
+                }
+
+                replaceFont = false;
             }
         }
     }

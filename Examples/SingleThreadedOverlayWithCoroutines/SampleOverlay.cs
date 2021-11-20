@@ -11,6 +11,8 @@
     /// </summary>
     internal class SampleOverlay : Overlay
     {
+        private readonly ushort[] custom = new ushort[3] { 0x0020, 0xFFFF, 0x00 };
+        private int fontSize = 13;
         private int data;
         private string data2;
         private bool isRunning = true;
@@ -48,11 +50,6 @@
             }
         }
 
-        protected override void AddFonts()
-        {
-            ImGui.GetIO().Fonts.AddFontFromFileTTF(@"C:\Windows\Fonts\segoeui.ttf", 36);
-        }
-
         protected override Task Render()
         {
             CoroutineHandler.Tick(ImGui.GetIO().DeltaTime);
@@ -83,6 +80,18 @@
             ImGui.Text($"Avg Execution Time: {myRoutine2.AverageMoveNextTime.TotalMilliseconds}");
             ImGui.Text($"Total Executions: {myRoutine2.MoveNextCount}");
             ImGui.Text($"Total Execution Time: {myRoutine2.TotalMoveNextTime.TotalMilliseconds}");
+
+            ImGui.DragInt("Font Size", ref fontSize, 0.1f, 13, 40);
+
+            if (ImGui.Button("Change Font (更改字体)"))
+            {
+                ReplaceFont(@"C:\Windows\Fonts\msyh.ttc", fontSize, FontGlyphRangeType.ChineseSimplifiedCommon);
+            }
+
+            if (ImGui.Button("Change Font (更改字体) Custom Range"))
+            {
+                ReplaceFont(@"C:\Windows\Fonts\msyh.ttc", fontSize, custom);
+            }
 
             if (ImGui.Button("Show/Hide Demo Window"))
             {
