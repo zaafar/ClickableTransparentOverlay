@@ -5,7 +5,6 @@
     using System.Numerics;
     using System.Reflection;
     using System.Runtime.CompilerServices;
-    using System.IO;
     using ImGuiNET;
     using Veldrid;
 
@@ -15,7 +14,7 @@
     /// </summary>
     internal sealed class ImGuiController : IDisposable
     {
-        private GraphicsDevice _gd;
+        private readonly GraphicsDevice _gd;
         private bool _frameBegun;
 
         // Veldrid objects
@@ -23,7 +22,6 @@
         private DeviceBuffer _indexBuffer;
         private DeviceBuffer _projMatrixBuffer;
         private Texture _fontTexture;
-        private TextureView _fontTextureView;
         private Shader _vertexShader;
         private Shader _fragmentShader;
         private ResourceLayout _layout;
@@ -43,12 +41,10 @@
         private Vector2 _scaleFactor = Vector2.One;
 
         // Image trackers
-        private readonly Dictionary<TextureView, ResourceSetInfo> _setsByView
-            = new Dictionary<TextureView, ResourceSetInfo>();
-        private readonly Dictionary<Texture, TextureView> _autoViewsByTexture
-            = new Dictionary<Texture, TextureView>();
-        private readonly Dictionary<IntPtr, ResourceSetInfo> _viewsById = new Dictionary<IntPtr, ResourceSetInfo>();
-        private readonly List<IDisposable> _ownedResources = new List<IDisposable>();
+        private readonly Dictionary<TextureView, ResourceSetInfo> _setsByView = new();
+        private readonly Dictionary<Texture, TextureView> _autoViewsByTexture = new();
+        private readonly Dictionary<IntPtr, ResourceSetInfo> _viewsById = new();
+        private readonly List<IDisposable> _ownedResources = new();
         private int _lastAssignedID = 100;
 
         /// <summary>
@@ -93,7 +89,6 @@
             _vertexBuffer.Name = "ImGui.NET Vertex Buffer";
             _indexBuffer = factory.CreateBuffer(new BufferDescription(2000, BufferUsage.IndexBuffer | BufferUsage.Dynamic));
             _indexBuffer.Name = "ImGui.NET Index Buffer";
-            RecreateFontDeviceTexture(_gd);
 
             _projMatrixBuffer = factory.CreateBuffer(new BufferDescription(64, BufferUsage.UniformBuffer | BufferUsage.Dynamic));
             _projMatrixBuffer.Name = "ImGui.NET Projection Buffer";
@@ -117,7 +112,7 @@
             _textureLayout = factory.CreateResourceLayout(new ResourceLayoutDescription(
                 new ResourceLayoutElementDescription("MainTexture", ResourceKind.TextureReadOnly, ShaderStages.Fragment)));
 
-            GraphicsPipelineDescription pd = new GraphicsPipelineDescription(
+            GraphicsPipelineDescription pd = new(
                 BlendStateDescription.SingleAlphaBlend,
                 new DepthStencilStateDescription(false, false, ComparisonKind.Always),
                 new RasterizerStateDescription(FaceCullMode.None, PolygonFillMode.Solid, FrontFace.Clockwise, false, true),
@@ -132,7 +127,7 @@
                 _projMatrixBuffer,
                 _gd.PointSampler));
 
-            _fontTextureResourceSet = factory.CreateResourceSet(new ResourceSetDescription(_textureLayout, _fontTextureView));
+            RecreateFontDeviceTexture(_gd);
         }
 
         /// <summary>
@@ -233,30 +228,10 @@
             _lastAssignedID = 100;
         }
 
-        private byte[] LoadEmbeddedShaderCode(ResourceFactory factory, string name, ShaderStages _)
-        {
-            switch (factory.BackendType)
-            {
-                case GraphicsBackend.Direct3D11:
-                    {
-                        string resourceName = name + ".hlsl";
-                        return GetEmbeddedResourceBytes(resourceName);
-                    }
-                default:
-                    throw new NotImplementedException();
-            }
-        }
-
-        private byte[] GetEmbeddedResourceBytes(string resourceName)
-        {
-            Assembly assembly = typeof(ImGuiController).Assembly;
-            using (Stream s = assembly.GetManifestResourceStream(resourceName))
-            {
-                byte[] ret = new byte[s.Length];
-                s.Read(ret, 0, (int)s.Length);
-                return ret;
-            }
-        }
+        /// <summary>
+        /// Recreates the device texture used to render text.
+        /// </summary>
+        public void RecreateFontDeviceTexture() => RecreateFontDeviceTexture(_gd);
 
         /// <summary>
         /// Recreates the device texture used to render text.
@@ -272,6 +247,10 @@
                 out int bytesPerPixel);
             // Store our identifier
             io.Fonts.SetTexID(_fontAtlasID);
+
+            // Clear old font texture & related data if they exists.
+            _fontTextureResourceSet?.Dispose();
+            _fontTexture?.Dispose();
 
             _fontTexture = gd.ResourceFactory.CreateTexture(TextureDescription.Texture2D(
                 (uint)width,
@@ -293,8 +272,7 @@
                 1,
                 0,
                 0);
-            _fontTextureView = gd.ResourceFactory.CreateTextureView(_fontTexture);
-
+            _fontTextureResourceSet = gd.ResourceFactory.CreateResourceSet(new ResourceSetDescription(_textureLayout, _fontTexture));
             io.Fonts.ClearTexData();
         }
 
@@ -567,19 +545,43 @@
         /// </summary>
         public void Dispose()
         {
-            _vertexBuffer.Dispose();
-            _indexBuffer.Dispose();
-            _projMatrixBuffer.Dispose();
-            _fontTexture.Dispose();
-            _fontTextureView.Dispose();
-            _vertexShader.Dispose();
-            _fragmentShader.Dispose();
-            _layout.Dispose();
-            _textureLayout.Dispose();
-            _pipeline.Dispose();
-            _mainResourceSet.Dispose();
             ClearCachedImageResources();
+
             _fontTextureResourceSet.Dispose();
+            _fontTexture.Dispose();
+
+            _mainResourceSet.Dispose();
+            _pipeline.Dispose();
+            _textureLayout.Dispose();
+            _layout.Dispose();
+            _fragmentShader.Dispose();
+            _vertexShader.Dispose();
+            _projMatrixBuffer.Dispose();
+            _indexBuffer.Dispose();
+            _vertexBuffer.Dispose();
+        }
+
+        private static byte[] LoadEmbeddedShaderCode(ResourceFactory factory, string name, ShaderStages _)
+        {
+            switch (factory.BackendType)
+            {
+                case GraphicsBackend.Direct3D11:
+                    {
+                        string resourceName = name + ".hlsl";
+                        return GetEmbeddedResourceBytes(resourceName);
+                    }
+                default:
+                    throw new NotImplementedException();
+            }
+        }
+
+        private static byte[] GetEmbeddedResourceBytes(string resourceName)
+        {
+            Assembly assembly = typeof(ImGuiController).Assembly;
+            using var s = assembly.GetManifestResourceStream(resourceName);
+            byte[] ret = new byte[s.Length];
+            s.Read(ret, 0, (int)s.Length);
+            return ret;
         }
 
         private struct ResourceSetInfo
