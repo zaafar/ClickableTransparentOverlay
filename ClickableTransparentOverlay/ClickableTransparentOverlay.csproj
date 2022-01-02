@@ -31,7 +31,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="ImGui.NET" Version="1.78.0" />
+    <PackageReference Include="ImGui.NET" Version="1.86.0" />
     <PackageReference Include="Veldrid" Version="4.9.0-g3839ab315a" />
     <PackageReference Include="Veldrid.ImageSharp" Version="4.9.0-g3839ab315a" />
     <PackageReference Include="Veldrid.Sdl2" Version="4.9.0-g3839ab315a" />

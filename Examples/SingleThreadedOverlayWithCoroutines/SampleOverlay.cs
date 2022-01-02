@@ -71,16 +71,15 @@
             ImGui.NewLine();
 
             ImGui.Text($"Coroutine Name: {myRoutine1.Name}");
-            ImGui.Text($"Avg Execution Time: {myRoutine1.AverageMoveNextTime.TotalMilliseconds}");
             ImGui.Text($"Total Executions: {myRoutine1.MoveNextCount}");
             ImGui.Text($"Total Execution Time: {myRoutine1.TotalMoveNextTime.TotalMilliseconds}");
+            ImGui.Text($"Avg Execution Time: {myRoutine1.TotalMoveNextTime.TotalMilliseconds / myRoutine1.MoveNextCount}");
             ImGui.NewLine();
 
             ImGui.Text($"Coroutine Name: {myRoutine2.Name}");
-            ImGui.Text($"Avg Execution Time: {myRoutine2.AverageMoveNextTime.TotalMilliseconds}");
             ImGui.Text($"Total Executions: {myRoutine2.MoveNextCount}");
             ImGui.Text($"Total Execution Time: {myRoutine2.TotalMoveNextTime.TotalMilliseconds}");
-
+            ImGui.Text($"Avg Execution Time: {myRoutine2.TotalMoveNextTime.TotalMilliseconds/ myRoutine2.MoveNextCount}");
             ImGui.DragInt("Font Size", ref fontSize, 0.1f, 13, 40);
 
             if (ImGui.Button("Change Font (更改字体)"))
