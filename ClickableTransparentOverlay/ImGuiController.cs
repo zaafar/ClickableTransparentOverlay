@@ -57,6 +57,7 @@
             _windowHeight = height;
 
             ImGui.CreateContext();
+            ImGui.GetIO().BackendFlags |= ImGuiBackendFlags.RendererHasVtxOffset;
             SetKeyMappings();
             SetPerFrameImGuiData(1f / 60f);
         }
@@ -505,11 +506,6 @@
                 for (int cmd_i = 0; cmd_i < cmd_list.CmdBuffer.Size; cmd_i++)
                 {
                     ImDrawCmdPtr pcmd = cmd_list.CmdBuffer[cmd_i];
-                    if (pcmd.ElemCount == 0)
-                    {
-                        continue;
-                    }
-
                     if (pcmd.UserCallback != IntPtr.Zero)
                     {
                         throw new NotImplementedException();
