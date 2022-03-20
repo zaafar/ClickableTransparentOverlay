@@ -516,7 +516,7 @@
                 }
             }
 
-            if (io.WantCaptureKeyboard || io.WantCaptureMouse)
+            if (io.WantCaptureMouse)
             {
                 NativeMethods.SetOverlayClickable(handle, true);
             }
