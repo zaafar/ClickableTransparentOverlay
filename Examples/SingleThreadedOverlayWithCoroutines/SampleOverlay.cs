@@ -1,6 +1,7 @@
 ﻿namespace SingleThreadedOverlayWithCoroutines
 {
     using System.Collections.Generic;
+    using System.Numerics;
     using System.Threading.Tasks;
     using ClickableTransparentOverlay;
     using Coroutine;
@@ -50,6 +51,10 @@
             }
         }
 
+        private static float X = 0.0f;
+        private static float Y = 619.500f;
+        private static float W = 351.0f;
+        private static float H = 248.0f;
         protected override Task Render()
         {
             CoroutineHandler.Tick(ImGui.GetIO().DeltaTime);
@@ -58,6 +63,11 @@
                 CoroutineHandler.RaiseEvent(myevent);
             }
 
+            ImGui.DragFloat("X", ref X);
+            ImGui.DragFloat("Y", ref Y);
+            ImGui.DragFloat("W", ref W);
+            ImGui.DragFloat("H", ref H);
+            ImGui.GetBackgroundDrawList().AddRect(new Vector2(X, Y), new Vector2(X + W, Y + H), 0xFFFFFFFF);
             ImGui.Begin("Sample Overlay", ref isRunning, ImGuiWindowFlags.AlwaysAutoResize);
             ImGui.Text($"Total Time/Delta Time: {ImGui.GetTime():F3}/{ImGui.GetIO().DeltaTime:F3}");
             ImGui.NewLine();

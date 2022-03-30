@@ -5,8 +5,8 @@ struct PS_INPUT
     float2 uv  : TEXCOORD0;
 };
 
-Texture2D FontTexture : register(t0);
 sampler FontSampler : register(s0);
+Texture2D FontTexture : register(t0);
 
 float4 main(PS_INPUT input) : SV_Target
 {
