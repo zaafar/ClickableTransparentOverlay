@@ -4,11 +4,11 @@
     <TargetFramework>net5.0</TargetFramework>
 	<GenerateDocumentationFile>true</GenerateDocumentationFile>
     <Version>5.4.0</Version>
-    <Authors>Zaafar</Authors>
+    <Authors>SAiBOTiERT</Authors>
     <Product />
     <Company />
     <Description>A library to create transparent overlays on the windows machines.</Description>
-    <PackageProjectUrl>https://github.com/zaafar/ClickableTransparentOverlay</PackageProjectUrl>
+    <PackageProjectUrl>https://github.com/SAiBOTiERT/CTO</PackageProjectUrl>
     <PackageTags>Transparent Overlay</PackageTags>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
@@ -16,6 +16,7 @@
     <AssemblyVersion>5.4.0.0</AssemblyVersion>
     <FileVersion>5.4.0.0</FileVersion>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <RepositoryUrl>https://github.com/SAiBOTiERT/CTO</RepositoryUrl>
   </PropertyGroup>
 
   <ItemGroup>

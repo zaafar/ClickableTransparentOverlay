@@ -101,7 +101,7 @@
             {
                 window = new Sdl2Window(windowTitle, 0, 0, 2560, 1440, windowFlags, false);
                 graphicsDevice = VeldridStartup.CreateGraphicsDevice(window,
-                    new GraphicsDeviceOptions(false, null, true),
+                    new GraphicsDeviceOptions(false, null, false),
                     GraphicsBackend.Direct3D11);
                 commandList = graphicsDevice.ResourceFactory.CreateCommandList();
                 imController = new ImGuiController(
