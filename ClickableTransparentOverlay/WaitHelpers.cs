@@ -22,7 +22,7 @@
             var cancellationToken = new CancellationTokenSource(timeout.Value).Token;
             return SpinWaitInternal(() => stopWaitingCondition() || cancellationToken.IsCancellationRequested);
         }
-        
+
         private static async Task SpinWaitInternal(Func<bool> stopWaitingCondition)
         {
             var checkInterval = TimeSpan.FromSeconds(1 / 10d);

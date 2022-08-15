@@ -1,52 +1,62 @@
 ﻿namespace ClickableTransparentOverlay
 {
+    using ClickableTransparentOverlay.Win32;
+    using SixLabors.ImageSharp;
+    using SixLabors.ImageSharp.PixelFormats;
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.IO;
     using System.Linq;
+    using System.Runtime.CompilerServices;
     using System.Threading;
     using System.Threading.Tasks;
-    using ImGuiNET;
-    using SixLabors.ImageSharp.PixelFormats;
-    using Veldrid;
-    using Veldrid.ImageSharp;
-    using Veldrid.Sdl2;
-    using Veldrid.StartupUtilities;
+    using Vortice.Direct3D;
+    using Vortice.Direct3D11;
+    using Vortice.DXGI;
+    using Vortice.Mathematics;
+    using Point = System.Drawing.Point;
+    using Size = System.Drawing.Size;
+    using Rectangle = System.Drawing.Rectangle;
 
     /// <summary>
-    /// A class to create clickable transparent overlay.
+    /// A class to create clickable transparent overlay on windows machine.
     /// </summary>
     public abstract class Overlay : IDisposable
     {
-        private const string DefaultWindowName = "Overlay";
-        private readonly SDL_WindowFlags windowFlags =
-            SDL_WindowFlags.Borderless | SDL_WindowFlags.AlwaysOnTop | SDL_WindowFlags.SkipTaskbar;
+        private readonly string title;
+        private readonly Format format;
 
-        private readonly Dictionary<string, Texture> loadedImages = new();
-        private readonly string windowTitle;
+        private Win32Window window;
+        private ID3D11Device device;
+        private ID3D11DeviceContext deviceContext;
+        private IDXGISwapChain swapChain;
+        private ID3D11Texture2D backBuffer;
+        private ID3D11RenderTargetView renderView;
 
-        private volatile Sdl2Window window;
-        private GraphicsDevice graphicsDevice;
-        private CommandList commandList;
-        private ImGuiController imController;
+        private ImGuiRenderer renderer;
+        private ImGuiInputHandler inputhandler;
 
+        private bool _disposedValue;
+        private IntPtr selfPointer;
         private Thread renderThread;
         private volatile CancellationTokenSource cancellationTokenSource;
         private volatile bool overlayIsReady;
 
         private bool replaceFont = false;
-        private ushort[] fontCustomGlyphRange;
+        private ushort[]? fontCustomGlyphRange;
         private string fontPathName;
         private float fontSize;
         private FontGlyphRangeType fontLanguage;
+
+        private Dictionary<string, (IntPtr Handle, uint Width, uint Height)> loadedTexturesPtrs;
 
         #region Constructors
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Overlay"/> class.
         /// </summary>
-        public Overlay() : this(DefaultWindowName)
+        public Overlay() : this("Overlay")
         {
         }
 
@@ -66,7 +76,7 @@
         /// <param name="DPIAware">
         /// should the overlay scale with windows scale value or not.
         /// </param>
-        public Overlay(bool DPIAware) : this(DefaultWindowName, DPIAware)
+        public Overlay(bool DPIAware) : this("Overlay", DPIAware)
         {
         }
 
@@ -81,14 +91,22 @@
         /// </param>
         public Overlay(string windowTitle, bool DPIAware)
         {
-            this.windowTitle = windowTitle;
+            this.VSync = true;
+            this._disposedValue = false;
+            this.overlayIsReady = false;
+            this.title = windowTitle;
+            this.cancellationTokenSource = new();
+            this.format = Format.R8G8B8A8_UNorm;
+            this.loadedTexturesPtrs = new();
             if (DPIAware)
             {
-                NativeMethods.SetProcessDPIAware();
+                User32.SetProcessDPIAware();
             }
         }
 
         #endregion
+
+        #region PublicAPI
 
         /// <summary>
         /// Starts the overlay
@@ -96,38 +114,38 @@
         /// <returns>A Task that finishes once the overlay window is ready</returns>
         public async Task Start()
         {
-            cancellationTokenSource = new CancellationTokenSource();
-            renderThread = new Thread(async () =>
+            this.renderThread = new Thread(async () =>
             {
-                window = new Sdl2Window(windowTitle, 0, 0, 2560, 1440, windowFlags, false);
-                graphicsDevice = VeldridStartup.CreateGraphicsDevice(window,
-                    new GraphicsDeviceOptions(false, null, true),
-                    GraphicsBackend.Direct3D11);
-                commandList = graphicsDevice.ResourceFactory.CreateCommandList();
-                imController = new ImGuiController(
-                    graphicsDevice,
-                    window.Width,
-                    window.Height);
-                window.Resized += () =>
+                D3D11.D3D11CreateDevice(null, DriverType.Hardware, DeviceCreationFlags.None,
+                    new[] { FeatureLevel.Level_10_0 }, out this.device, out this.deviceContext);
+                this.selfPointer = Kernel32.GetModuleHandle(null);
+                var wndClass = new WNDCLASSEX
                 {
-                    graphicsDevice.MainSwapchain.Resize((uint)window.Width, (uint)window.Height);
-                    imController.WindowResized(window.Width, window.Height);
+                    Size = Unsafe.SizeOf<WNDCLASSEX>(),
+                    Styles = WindowClassStyles.CS_HREDRAW | WindowClassStyles.CS_VREDRAW | WindowClassStyles.CS_PARENTDC,
+                    WindowProc = WndProc,
+                    InstanceHandle = this.selfPointer,
+                    CursorHandle = User32.LoadCursor(IntPtr.Zero, SystemCursor.IDC_ARROW),
+                    BackgroundBrushHandle = IntPtr.Zero,
+                    IconHandle = IntPtr.Zero,
+                    ClassName = "WndClass",
                 };
 
-                NativeMethods.InitTransparency(window.Handle);
-                NativeMethods.SetOverlayClickable(window.Handle, false);
-                imController.Start();
-                if (!overlayIsReady)
-                {
-                    overlayIsReady = true;
-                }
-
-                PostStart();
-                await RunInfiniteLoop(cancellationTokenSource.Token);
+                User32.RegisterClassEx(ref wndClass);
+                this.window = new Win32Window(wndClass.ClassName, 800, 600, 0, 0, this.title,
+                    WindowStyles.WS_POPUP, WindowExStyles.WS_EX_ACCEPTFILES | WindowExStyles.WS_EX_TOPMOST);
+                this.renderer = new ImGuiRenderer(device, deviceContext, 800, 600);
+                this.inputhandler = new ImGuiInputHandler(this.window.Handle);
+                this.overlayIsReady = true;
+                await this.PostInitialized();
+                User32.ShowWindow(this.window.Handle, ShowWindowCommand.ShowMaximized);
+                Utils.InitTransparency(this.window.Handle);
+                this.renderer.Start();
+                this.RunInfiniteLoop(this.cancellationTokenSource.Token);
             });
-            
-            renderThread.Start();
-            await WaitHelpers.SpinWait(() => overlayIsReady);
+
+            this.renderThread.Start();
+            await WaitHelpers.SpinWait(() => this.overlayIsReady);
         }
 
         /// <summary>
@@ -136,59 +154,30 @@
         /// <returns>A task that finishes once the overlay window closes</returns>
         public virtual async Task Run()
         {
-            if (!overlayIsReady)
+            if (!this.overlayIsReady)
             {
-                await Start();
+                await this.Start();
             }
 
-            await WaitHelpers.SpinWait(() => !window.Exists);
+            await WaitHelpers.SpinWait(() => this.cancellationTokenSource.IsCancellationRequested);
         }
 
         /// <summary>
-        /// Infinitely calls the Render task until the overlay closes.
+        /// Safely Closes the Overlay.
         /// </summary>
-        private async Task RunInfiniteLoop(CancellationToken cancellationToken)
+        public virtual void Close()
         {
-            var stopwatch = Stopwatch.StartNew();
-            while (window.Exists && !cancellationToken.IsCancellationRequested)
-            {
-                InputSnapshot snapshot = window.PumpEvents();
-                if (!window.Exists)
-                {
-                    Close();
-                    break;
-                }
-
-                var deltaSeconds = (float)stopwatch.ElapsedTicks / Stopwatch.Frequency;
-                stopwatch.Restart();
-                imController.Update(deltaSeconds, snapshot, window.Handle);
-                
-                await Render();
-
-                commandList.Begin();
-                commandList.SetFramebuffer(graphicsDevice.MainSwapchain.Framebuffer);
-                commandList.ClearColorTarget(0, new RgbaFloat(0.00f, 0.00f, 0.00f, 0.00f));
-                imController.Render(graphicsDevice, commandList);
-                commandList.End();
-                graphicsDevice.SubmitCommands(commandList);
-                graphicsDevice.SwapBuffers(graphicsDevice.MainSwapchain);
-                ReplaceFontIfRequired();
-            }
-
-            if (window.Exists)
-                window.Close();
+            this.cancellationTokenSource.Cancel();
         }
 
         /// <summary>
-        /// Abstract Task for creating the UI.
+        /// Safely dispose all the resources created by the overlay
         /// </summary>
-        /// <returns>Task that finishes once per frame</returns>
-        protected abstract Task Render();
-
-        /// <summary>
-        /// Steps to execute after the overlay has fully initialized.
-        /// </summary>
-        protected virtual void PostStart() { }
+        public void Dispose()
+        {
+            this.Dispose(true);
+            GC.SuppressFinalize(this);
+        }
 
         /// <summary>
         /// Replaces the ImGui font with another one.
@@ -204,11 +193,11 @@
                 return false;
             }
 
-            fontPathName = pathName;
-            fontSize = size;
-            fontLanguage = language;
-            replaceFont = true;
-            fontCustomGlyphRange = null;
+            this.fontPathName = pathName;
+            this.fontSize = size;
+            this.fontLanguage = language;
+            this.replaceFont = true;
+            this.fontCustomGlyphRange = null;
             return true;
         }
 
@@ -234,12 +223,9 @@
         }
 
         /// <summary>
-        /// Safely Closes the Overlay.
+        /// Enable or disable the vsync on the overlay.
         /// </summary>
-        public virtual void Close()
-        {
-            cancellationTokenSource.Cancel();
-        }
+        public bool VSync;
 
         /// <summary>
         /// Gets or sets the position of the overlay window.
@@ -248,11 +234,35 @@
         {
             get
             {
-                return new Point(window.X, window.Y);
+                return this.window.Dimensions.Location;
+            }
+
+            set
+            {
+                if (this.window.Dimensions.Location != value)
+                {
+                    User32.MoveWindow(this.window.Handle, value.X, value.Y, this.window.Dimensions.Width, this.window.Dimensions.Width, true);
+                    this.window.Dimensions.Location = value;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the size of the overlay window.
+        /// </summary>
+        public Size Size
+        {
+            get
+            {
+                return this.window.Dimensions.Size;
             }
             set
             {
-                Sdl2Native.SDL_SetWindowPosition(window.SdlWindowHandle, value.X, value.Y);
+                if (this.window.Dimensions.Size != value)
+                {
+                    User32.MoveWindow(this.window.Handle, this.window.Dimensions.X, this.window.Dimensions.X, value.Width, value.Height, true);
+                    this.window.Dimensions.Size = value;
+                }
             }
         }
 
@@ -263,40 +273,7 @@
         {
             get
             {
-                return Sdl2Native.SDL_GetNumVideoDisplays();
-            }
-        }
-
-        /// <summary>
-        /// Gets the monitor bounds based on the monitor number.
-        /// </summary>
-        /// <param name="num">Monitor number starting from 0.</param>
-        /// <returns>monitor bounds in case of valid monitor number
-        /// otherwise current overlay window bounds.</returns>
-        public Rectangle GetDisplayBounds(int num)
-        {
-            int numDisplays = NumberVideoDisplays;
-            if ( num >= numDisplays || num < 0)
-            {
-                return new Rectangle(Position, Size);
-            }
-
-            SDL2Functions.SDL_GetDisplayBounds(num, out Rectangle bounds);
-            return bounds;
-        }
-
-        /// <summary>
-        /// Gets or sets the size of the overlay window.
-        /// </summary>
-        public Point Size
-        {
-            get
-            {
-                return new Point(window.Width, window.Height);
-            }
-            set
-            {
-                Sdl2Native.SDL_SetWindowSize(window.SdlWindowHandle, value.X, value.Y);
+                return User32.GetSystemMetrics(0x50); // SM_CMONITORS
             }
         }
 
@@ -307,25 +284,28 @@
         /// so this function can be called multiple times per frame.
         /// </summary>
         /// <param name="filePath">Path to the image on disk.</param>
+        /// <param name="srgb"> a value indicating whether pixel format is srgb or not.</param>
         /// <param name="handle">output pointer to the image in the graphic device.</param>
         /// <param name="width">width of the loaded texture.</param>
         /// <param name="height">height of the loaded texture.</param>
-        public void AddOrGetImagePointer(
-            string filePath,
-            out IntPtr handle,
-            out uint width,
-            out uint height)
+        public void AddOrGetImagePointer(string filePath, bool srgb, out IntPtr handle, out uint width, out uint height)
         {
-            if (!loadedImages.TryGetValue(filePath, out Texture texture))
+            if (this.loadedTexturesPtrs.TryGetValue(filePath, out var data))
             {
-                ImageSharpTexture imgSharpTexture = new(filePath);
-                texture = imgSharpTexture.CreateDeviceTexture(graphicsDevice, graphicsDevice.ResourceFactory);
-                loadedImages.Add(filePath, texture);
+                handle = data.Handle;
+                width = data.Width;
+                height = data.Height;
             }
-
-            width = texture.Width;
-            height = texture.Height;
-            handle = imController.GetOrCreateImGuiBinding(graphicsDevice.ResourceFactory, texture);
+            else
+            {
+                var configuration = Configuration.Default.Clone();
+                configuration.PreferContiguousImageBuffers = true;
+                using var image = Image.Load<Rgba32>(configuration, filePath);
+                handle = this.renderer.CreateImageTexture(image, srgb ? Format.R8G8B8A8_UNorm_SRgb : Format.R8G8B8A8_UNorm);
+                width = (uint)image.Width;
+                height = (uint)image.Height;
+                this.loadedTexturesPtrs.Add(filePath, new(handle, width, height));
+            }
         }
 
         /// <summary>
@@ -335,141 +315,201 @@
         /// so this function can be called multiple times per frame.
         /// </summary>
         /// <param name="name">user friendly name given to the image.</param>
-        /// <param name="image">image.</param>
-        /// <param name="mipmap">
-        /// a value indicating whether to create mipmap or not.
-        /// For more info, read <see cref="ImageSharpTexture"/> code.
-        /// </param>
-        /// <param name="srgb">
-        /// a value indicating whether pixel format is srgb or not.
-        /// For more info, read <see cref="ImageSharpTexture"/> code.
-        /// </param>
+        /// <param name="image">Image data in <see cref="Image"> format.</param>
+        /// <param name="srgb"> a value indicating whether pixel format is srgb or not.</param>
         /// <param name="handle">output pointer to the image in the graphic device.</param>
-        /// <param name="width">width of the loaded texture.</param>
-        /// <param name="height">width of the loaded texture.</param>
-        public void AddOrGetImagePointer(
-            string name,
-            SixLabors.ImageSharp.Image<Rgba32> image,
-            bool mipmap,
-            bool srgb,
-            out IntPtr handle,
-            out uint width,
-            out uint height)
+        public void AddOrGetImagePointer(string name, Image<Rgba32> image, bool srgb, out IntPtr handle)
         {
-            if (!loadedImages.TryGetValue(name, out Texture texture))
+            if (this.loadedTexturesPtrs.TryGetValue(name, out var data))
             {
-                ImageSharpTexture imgSharpTexture = new(image, mipmap, srgb);
-                texture = imgSharpTexture.CreateDeviceTexture(graphicsDevice, graphicsDevice.ResourceFactory);
-                loadedImages.Add(name, texture);
+                handle = data.Handle;
             }
-
-            width = texture.Width;
-            height = texture.Height;
-            handle = imController.GetOrCreateImGuiBinding(graphicsDevice.ResourceFactory, texture);
+            else
+            {
+                handle = this.renderer.CreateImageTexture(image, srgb ? Format.R8G8B8A8_UNorm_SRgb : Format.R8G8B8A8_UNorm);
+                this.loadedTexturesPtrs.Add(name, new(handle, (uint)image.Width, (uint)image.Height));
+            }
         }
 
         /// <summary>
         /// Removes the image from the Overlay.
         /// </summary>
-        /// <param name="name">
-        /// name or pathname which was used to
-        /// add the image in the first place.
-        /// </param>
-        /// <returns>true if image is removed otherwise false.</returns>
-        public bool RemoveImage(string name)
+        /// <param name="key">name or pathname which was used to add the image in the first place.</param>
+        /// <returns> true if the image is removed otherwise false.</returns>
+        public bool RemoveImage(string key)
         {
-            if (loadedImages.Remove(name, out Texture texture))
+            if (this.loadedTexturesPtrs.Remove(key, out var data))
             {
-                imController.RemoveImGuiBinding(texture);
-                texture.Dispose();
-                return true;
+                return this.renderer.RemoveImageTexture(data.Handle);
             }
 
             return false;
         }
 
-        /// <summary>
-        /// Free all resources acquired by the overlay.
-        /// </summary>
-        public virtual void Dispose()
+        #endregion
+
+        protected virtual void Dispose(bool disposing)
         {
-            if (renderThread.IsAlive)
+            if (this._disposedValue)
             {
-                Close();
+                return;
             }
 
-            graphicsDevice.WaitForIdle();
-            RemoveAllImages();
-            imController.Dispose();
-            commandList.Dispose();
-            graphicsDevice.WaitForIdle();
-            graphicsDevice.Dispose();
+            if (disposing)
+            {
+                this.renderThread?.Join();
+                foreach(var key in this.loadedTexturesPtrs.Keys.ToArray())
+                {
+                    this.RemoveImage(key);
+                }
+
+                this.cancellationTokenSource?.Dispose();
+                this.swapChain?.Release();
+                this.backBuffer?.Release();
+                this.renderView?.Release();
+                this.renderer?.Dispose();
+                this.window?.Dispose();
+                this.deviceContext?.Release();
+                this.device?.Release();
+            }
+
+            if (this.selfPointer != IntPtr.Zero)
+            {
+                _ = User32.UnregisterClass(this.title, this.selfPointer);
+                this.selfPointer = IntPtr.Zero;
+            }
+
+            this._disposedValue = true;
         }
 
-        private void RemoveAllImages()
+        /// <summary>
+        /// Steps to execute after the overlay has fully initialized.
+        /// </summary>
+        protected virtual Task PostInitialized()
         {
-            var images = loadedImages.Keys.ToArray();
-            for (int i = 0; i < images.Length; i++)
+            return Task.CompletedTask;
+        }
+
+        /// <summary>
+        /// Abstract Task for creating the UI.
+        /// </summary>
+        /// <returns>Task that finishes once per frame</returns>
+        protected abstract void Render();
+
+        private void RunInfiniteLoop(CancellationToken token)
+        {
+            var stopwatch = Stopwatch.StartNew();
+            float deltaTime = 0f;
+            var clearColor = new Color4(0.0f);
+            while (!token.IsCancellationRequested)
             {
-                RemoveImage(images[i]);
+                deltaTime = stopwatch.ElapsedTicks / (float)Stopwatch.Frequency;
+                stopwatch.Restart();
+                this.window.PumpEvents();
+                Utils.SetOverlayClickable(this.window.Handle, this.inputhandler.Update());
+                this.renderer.Update(deltaTime, () => { Render(); });
+                this.deviceContext.OMSetRenderTargets(renderView);
+                this.deviceContext.ClearRenderTargetView(renderView, clearColor);
+                this.renderer.Render();
+                if (VSync)
+                {
+                    this.swapChain.Present(1, PresentFlags.None); // Present with vsync
+                }
+                else
+                {
+                    this.swapChain.Present(0, PresentFlags.None); // Present without vsync
+                }
+
+                this.ReplaceFontIfRequired();
             }
         }
 
         private void ReplaceFontIfRequired()
         {
-            if (replaceFont)
+            if (this.replaceFont && this.renderer != null)
             {
-                var io = ImGui.GetIO();
-                io.Fonts.Clear();
-                unsafe
-                {
-                    var config = ImGuiNative.ImFontConfig_ImFontConfig();
-                    if (fontCustomGlyphRange == null)
-                    {
-                        switch (fontLanguage)
-                        {
-                            case FontGlyphRangeType.English:
-                                io.Fonts.AddFontFromFileTTF(fontPathName, fontSize, config, io.Fonts.GetGlyphRangesDefault());
-                                break;
-                            case FontGlyphRangeType.ChineseSimplifiedCommon:
-                                io.Fonts.AddFontFromFileTTF(fontPathName, fontSize, config, io.Fonts.GetGlyphRangesChineseSimplifiedCommon());
-                                break;
-                            case FontGlyphRangeType.ChineseFull:
-                                io.Fonts.AddFontFromFileTTF(fontPathName, fontSize, config, io.Fonts.GetGlyphRangesChineseFull());
-                                break;
-                            case FontGlyphRangeType.Japanese:
-                                io.Fonts.AddFontFromFileTTF(fontPathName, fontSize, config, io.Fonts.GetGlyphRangesJapanese());
-                                break;
-                            case FontGlyphRangeType.Korean:
-                                io.Fonts.AddFontFromFileTTF(fontPathName, fontSize, config, io.Fonts.GetGlyphRangesKorean());
-                                break;
-                            case FontGlyphRangeType.Thai:
-                                io.Fonts.AddFontFromFileTTF(fontPathName, fontSize, config, io.Fonts.GetGlyphRangesThai());
-                                break;
-                            case FontGlyphRangeType.Vietnamese:
-                                io.Fonts.AddFontFromFileTTF(fontPathName, fontSize, config, io.Fonts.GetGlyphRangesVietnamese());
-                                break;
-                            case FontGlyphRangeType.Cyrillic:
-                                io.Fonts.AddFontFromFileTTF(fontPathName, fontSize, config, io.Fonts.GetGlyphRangesCyrillic());
-                                break;
-                            default:
-                                throw new Exception("Font Glyph Range not supported.");
-                        }
-                    }
-                    else
-                    {
-                        fixed (ushort* p = &fontCustomGlyphRange[0])
-                        {
-                            io.Fonts.AddFontFromFileTTF(fontPathName, fontSize, config, new IntPtr(p));
-                        }
-                    }
-
-                    imController.RecreateFontDeviceTexture(graphicsDevice);
-                    ImGuiNative.ImFontConfig_destroy(config);
-                }
-
-                replaceFont = false;
+                this.renderer.UpdateFontTexture(this.fontPathName, this.fontSize, this.fontCustomGlyphRange, this.fontLanguage);
+                this.replaceFont = false;
             }
+        }
+
+        private void OnResize()
+        {
+            if (renderView == null)//first show
+            {
+                using var dxgiFactory = device.QueryInterface<IDXGIDevice>().GetParent<IDXGIAdapter>().GetParent<IDXGIFactory>();
+                var swapchainDesc = new SwapChainDescription()
+                {
+                    BufferCount = 1,
+                    BufferDescription = new ModeDescription(this.window.Dimensions.Width, this.window.Dimensions.Height, this.format),
+                    Windowed = true,
+                    OutputWindow = this.window.Handle,
+                    SampleDescription = new SampleDescription(1, 0),
+                    SwapEffect = SwapEffect.Discard,
+                    BufferUsage = Usage.RenderTargetOutput,
+                };
+
+                this.swapChain = dxgiFactory.CreateSwapChain(this.device, swapchainDesc);
+                dxgiFactory.MakeWindowAssociation(this.window.Handle, WindowAssociationFlags.IgnoreAll);
+
+                this.backBuffer = this.swapChain.GetBuffer<ID3D11Texture2D>(0);
+                this.renderView = this.device.CreateRenderTargetView(backBuffer);
+            }
+            else
+            {
+                this.renderView.Dispose();
+                this.backBuffer.Dispose();
+
+                this.swapChain.ResizeBuffers(1, this.window.Dimensions.Width, this.window.Dimensions.Height, this.format, SwapChainFlags.None);
+
+                backBuffer = this.swapChain.GetBuffer<ID3D11Texture2D1>(0);
+                renderView = this.device.CreateRenderTargetView(backBuffer);
+            }
+
+            this.renderer.Resize(this.window.Dimensions.Width, this.window.Dimensions.Height);
+        }
+
+        private bool ProcessMessage(WindowMessage msg, UIntPtr wParam, IntPtr lParam)
+        {
+            switch (msg)
+            {
+                case WindowMessage.Size:
+                    switch ((SizeMessage)wParam)
+                    {
+                        case SizeMessage.SIZE_RESTORED:
+                        case SizeMessage.SIZE_MAXIMIZED:
+                            var lp = (int)lParam;
+                            this.window.Dimensions.Width = Utils.Loword(lp);
+                            this.window.Dimensions.Height = Utils.Hiword(lp);
+                            this.OnResize();
+                            break;
+                        default:
+                            break;
+                    }
+
+                    break;
+                case WindowMessage.Destroy:
+                    this.Close();
+                    break;
+                default:
+                    break;
+            }
+
+            return false;
+        }
+
+        private IntPtr WndProc(IntPtr hWnd, uint msg, UIntPtr wParam, IntPtr lParam)
+        {
+            if (this.overlayIsReady)
+            {
+                if (this.inputhandler.ProcessMessage((WindowMessage)msg, wParam, lParam) ||
+                    this.ProcessMessage((WindowMessage)msg, wParam, lParam))
+                {
+                    return IntPtr.Zero;
+                }
+            }
+
+            return User32.DefWindowProc(hWnd, msg, wParam, lParam);
         }
     }
 }

@@ -2,11 +2,13 @@
 {
     using System;
     using System.Diagnostics;
+    using System.Drawing;
     using System.IO;
     using System.Numerics;
     using System.Threading;
     using System.Threading.Tasks;
     using ClickableTransparentOverlay;
+    using ClickableTransparentOverlay.Win32;
     using ImGuiNET;
 
     /// <summary>
@@ -63,7 +65,7 @@
             Thread.Sleep(state.LogicTickDelayInMilliseconds); //Not accurate at all as a mechanism for limiting thread runs
         }
 
-        protected override Task Render()
+        protected override void Render()
         {
             var deltaSeconds = ImGui.GetIO().DeltaTime;
 
@@ -74,12 +76,13 @@
                 {
                     state.Visible = true;
                 }
-                return Task.CompletedTask;
+
+                return;
             }
             
             state.RenderFramesCounter.Increment();
             
-            if (NativeMethods.IsKeyPressedAndNotTimeout(0x7B)) //F12.
+            if (Utils.IsKeyPressedAndNotTimeout(VK.F12)) //F12.
             {
                 state.ShowClickableMenu = !state.ShowClickableMenu;
                 ImGui.GetIO().WantCaptureMouse = true; // workaround: where overlay gets stuck in non-clickable mode forever.
@@ -105,7 +108,7 @@
                 RenderMainMenu();
             }
 
-            return Task.CompletedTask;
+            return;
         }
 
         private void RenderMainMenu()
@@ -132,21 +135,12 @@
             ImGui.Checkbox("Show full-screen non-clickable transparent overlay sample 2.", ref state.OverlaySample2.Show);
 
             ImGui.NewLine();
-            if (ImGui.InputInt("Set To Display", ref state.CurrentDisplay))
-            {
-                var box = GetDisplayBounds(state.CurrentDisplay);
-                state.resizeHelper[0] = box.X;
-                state.resizeHelper[1] = box.Y;
-                state.resizeHelper[2] = box.Width;
-                state.resizeHelper[3] = box.Height;
-            }
-
             ImGui.SliderInt2("Set Position", ref state.resizeHelper[0], 0, 3840);
             ImGui.SliderInt2("Set Size", ref state.resizeHelper[2], 0, 3840);
             if (ImGui.Button("Resize"))
             {
-                Position = new Veldrid.Point(state.resizeHelper[0], state.resizeHelper[1]);
-                Size = new Veldrid.Point(state.resizeHelper[2], state.resizeHelper[3]);
+                Position = new(state.resizeHelper[0], state.resizeHelper[1]);
+                Size = new(state.resizeHelper[2], state.resizeHelper[3]);
             }
 
             ImGui.NewLine();
@@ -188,6 +182,7 @@
             {
                 AddOrGetImagePointer(
                     "image.png",
+                    false,
                     out IntPtr imgPtr,
                     out uint w,
                     out uint h);
@@ -226,6 +221,5 @@
             ImGui.Text($"Logic Delta (seconds): {state.LogicalDelta/Stopwatch.Frequency:F4}");
             ImGui.End();
         }
-        
     }
 }
