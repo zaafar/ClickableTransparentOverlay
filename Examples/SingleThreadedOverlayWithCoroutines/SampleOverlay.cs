@@ -55,7 +55,7 @@
         private static float Y = 619.500f;
         private static float W = 351.0f;
         private static float H = 248.0f;
-        protected override Task Render()
+        protected override void Render()
         {
             CoroutineHandler.Tick(ImGui.GetIO().DeltaTime);
             if (data % 5 == 1)
@@ -117,8 +117,6 @@
             {
                 ImGui.ShowDemoWindow(ref demoWindow);
             }
-
-            return Task.CompletedTask;
         }
     }
 }
