@@ -1,13 +1,15 @@
 # Clickable Transparent Overlay
-A library for creating transparent overlay using Win32 API and ImGui.NET.
+A library for creating transparent overlay using Win32 API and ImGui.
 
 # Nuget
+
 https://www.nuget.org/packages/ClickableTransparentOverlay
 
 # Dependencies
+
 * .NET 6
-* Vortice.Windows
-* ImGui.NET
+* [Vortice.Windows](https://github.com/amerkoleci/Vortice.Windows)
+* [ImGui.NET](https://github.com/mellinoe/ImGui.NET/)
 
 # Donations
 
