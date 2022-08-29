@@ -210,7 +210,7 @@
 
         public IntPtr CreateImageTexture(Image<Rgba32> image, Format format)
         {
-            var texDesc = new Texture2DDescription(format, image.Width, image.Width, 1, 1);
+            var texDesc = new Texture2DDescription(format, image.Width, image.Height, 1, 1);
             if (!image.DangerousTryGetSinglePixelMemory(out Memory<Rgba32> memory))
             {
                 throw new Exception("Make sure to initialize MemoryAllocator.Default!");
