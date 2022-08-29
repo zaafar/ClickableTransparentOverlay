@@ -9,8 +9,16 @@
     <Description>A library to create transparent overlays on the windows machines.</Description>
     <PackageProjectUrl>https://github.com/zaafar/ClickableTransparentOverlay</PackageProjectUrl>
     <RepositoryUrl>https://github.com/zaafar/ClickableTransparentOverlay</RepositoryUrl>
-    <Version>6.0.0</Version>
+    <Version>6.0.1</Version>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\LICENSE">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="ImGui.NET" Version="1.87.3" />
