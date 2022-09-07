@@ -23,8 +23,8 @@
   <ItemGroup>
     <PackageReference Include="ImGui.NET" Version="1.87.3" />
     <PackageReference Include="SixLabors.ImageSharp" Version="2.1.3" />
-    <PackageReference Include="Vortice.D3DCompiler" Version="2.1.26-beta" />
-    <PackageReference Include="Vortice.Direct3D11" Version="2.1.26-beta" />
+    <PackageReference Include="Vortice.D3DCompiler" Version="2.1.31-beta" />
+    <PackageReference Include="Vortice.Direct3D11" Version="2.1.31-beta" />
   </ItemGroup>
 
 </Project>
