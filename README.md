@@ -11,7 +11,7 @@ https://www.nuget.org/packages/ClickableTransparentOverlay
 * [Vortice.Windows](https://github.com/amerkoleci/Vortice.Windows)
 * [ImGui.NET](https://github.com/mellinoe/ImGui.NET/)
 
-# Libs to watch
+# Reference code to watch
 
 Lots of classes in this library (e.g. ImGuiRenderer, ImGuiInputHandler and etc) closely
 follow (if not identical to) the official example in c++ ImGui library
