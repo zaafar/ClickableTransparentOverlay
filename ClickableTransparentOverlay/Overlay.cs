@@ -17,7 +17,6 @@
     using Vortice.Mathematics;
     using Point = System.Drawing.Point;
     using Size = System.Drawing.Size;
-    using Rectangle = System.Drawing.Rectangle;
 
     /// <summary>
     /// A class to create clickable transparent overlay on windows machine.
