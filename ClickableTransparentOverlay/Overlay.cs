@@ -17,7 +17,6 @@
     using Vortice.Mathematics;
     using Point = System.Drawing.Point;
     using Size = System.Drawing.Size;
-    using Rectangle = System.Drawing.Rectangle;
 
     /// <summary>
     /// A class to create clickable transparent overlay on windows machine.
@@ -116,30 +115,7 @@
         {
             this.renderThread = new Thread(async () =>
             {
-                D3D11.D3D11CreateDevice(null, DriverType.Hardware, DeviceCreationFlags.None,
-                    new[] { FeatureLevel.Level_10_0 }, out this.device, out this.deviceContext);
-                this.selfPointer = Kernel32.GetModuleHandle(null);
-                var wndClass = new WNDCLASSEX
-                {
-                    Size = Unsafe.SizeOf<WNDCLASSEX>(),
-                    Styles = WindowClassStyles.CS_HREDRAW | WindowClassStyles.CS_VREDRAW | WindowClassStyles.CS_PARENTDC,
-                    WindowProc = WndProc,
-                    InstanceHandle = this.selfPointer,
-                    CursorHandle = User32.LoadCursor(IntPtr.Zero, SystemCursor.IDC_ARROW),
-                    BackgroundBrushHandle = IntPtr.Zero,
-                    IconHandle = IntPtr.Zero,
-                    ClassName = "WndClass",
-                };
-
-                User32.RegisterClassEx(ref wndClass);
-                this.window = new Win32Window(wndClass.ClassName, 800, 600, 0, 0, this.title,
-                    WindowStyles.WS_POPUP, WindowExStyles.WS_EX_ACCEPTFILES | WindowExStyles.WS_EX_TOPMOST);
-                this.renderer = new ImGuiRenderer(device, deviceContext, 800, 600);
-                this.inputhandler = new ImGuiInputHandler(this.window.Handle);
-                this.overlayIsReady = true;
-                await this.PostInitialized();
-                User32.ShowWindow(this.window.Handle, ShowWindowCommand.ShowMaximized);
-                Utils.InitTransparency(this.window.Handle);
+                await this.InitializeResources();
                 this.renderer.Start();
                 this.RunInfiniteLoop(this.cancellationTokenSource.Token);
             });
@@ -467,6 +443,46 @@
             }
 
             this.renderer.Resize(this.window.Dimensions.Width, this.window.Dimensions.Height);
+        }
+
+        private async Task InitializeResources()
+        {
+            D3D11.D3D11CreateDevice(
+                null,
+                DriverType.Hardware,
+                DeviceCreationFlags.None,
+                new[] { FeatureLevel.Level_10_0 },
+                out this.device,
+                out this.deviceContext);
+            this.selfPointer = Kernel32.GetModuleHandle(null);
+            var wndClass = new WNDCLASSEX
+            {
+                Size = Unsafe.SizeOf<WNDCLASSEX>(),
+                Styles = WindowClassStyles.CS_HREDRAW | WindowClassStyles.CS_VREDRAW | WindowClassStyles.CS_PARENTDC,
+                WindowProc = WndProc,
+                InstanceHandle = this.selfPointer,
+                CursorHandle = User32.LoadCursor(IntPtr.Zero, SystemCursor.IDC_ARROW),
+                BackgroundBrushHandle = IntPtr.Zero,
+                IconHandle = IntPtr.Zero,
+                ClassName = "WndClass",
+            };
+
+            User32.RegisterClassEx(ref wndClass);
+            this.window = new Win32Window(
+                wndClass.ClassName,
+                800,
+                600,
+                0,
+                0,
+                this.title,
+                WindowStyles.WS_POPUP,
+                WindowExStyles.WS_EX_ACCEPTFILES | WindowExStyles.WS_EX_TOPMOST);
+            this.renderer = new ImGuiRenderer(device, deviceContext, 800, 600);
+            this.inputhandler = new ImGuiInputHandler(this.window.Handle);
+            this.overlayIsReady = true;
+            await this.PostInitialized();
+            User32.ShowWindow(this.window.Handle, ShowWindowCommand.ShowMaximized);
+            Utils.InitTransparency(this.window.Handle);
         }
 
         private bool ProcessMessage(WindowMessage msg, UIntPtr wParam, IntPtr lParam)
