@@ -1,11 +1,14 @@
 ﻿namespace SingleThreadedOverlayWithCoroutines
 {
     using System.Collections.Generic;
-    using System.Numerics;
-    using System.Threading.Tasks;
     using ClickableTransparentOverlay;
     using Coroutine;
     using ImGuiNET;
+    using SixLabors.ImageSharp.PixelFormats;
+    using SixLabors.ImageSharp;
+    using System.Threading.Tasks;
+    using System.Numerics;
+    using System;
 
     /// <summary>
     /// Render Loop and Logic Loop are synchronized.
@@ -21,12 +24,34 @@
         private readonly Event myevent = new();
         private readonly ActiveCoroutine myRoutine1;
         private readonly ActiveCoroutine myRoutine2;
+        private Image<Rgba32> image = new(100, 100);
 
         public SampleOverlay()
             : base(true)
         {
             myRoutine1 = CoroutineHandler.Start(TickServiceAsync(), name: "MyRoutine-1");
             myRoutine2 = CoroutineHandler.Start(EventServiceAsync(), name: "MyRoutine-2");
+            this.CreateNewImageAtRuntime();
+
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            image.Dispose();
+            base.Dispose(disposing);
+        }
+
+        private void CreateNewImageAtRuntime()
+        {
+            Parallel.For(0, this.image.Height, y =>
+            {
+                for (int x = 0; x < this.image.Width; x++)
+                {
+                    image[x, y] = new Rgba32(Vector3.One * new Random().Next(0, 255));
+                }
+            });
+
+            image.Save("foo.jpeg");
         }
 
         private IEnumerator<Wait> TickServiceAsync()
@@ -51,10 +76,6 @@
             }
         }
 
-        private static float X = 0.0f;
-        private static float Y = 619.500f;
-        private static float W = 351.0f;
-        private static float H = 248.0f;
         protected override void Render()
         {
             CoroutineHandler.Tick(ImGui.GetIO().DeltaTime);
@@ -63,11 +84,6 @@
                 CoroutineHandler.RaiseEvent(myevent);
             }
 
-            ImGui.DragFloat("X", ref X);
-            ImGui.DragFloat("Y", ref Y);
-            ImGui.DragFloat("W", ref W);
-            ImGui.DragFloat("H", ref H);
-            ImGui.GetBackgroundDrawList().AddRect(new Vector2(X, Y), new Vector2(X + W, Y + H), 0xFFFFFFFF);
             ImGui.Begin("Sample Overlay", ref isRunning, ImGuiWindowFlags.AlwaysAutoResize);
             ImGui.Text($"Total Time/Delta Time: {ImGui.GetTime():F3}/{ImGui.GetIO().DeltaTime:F3}");
             ImGui.NewLine();
@@ -117,6 +133,9 @@
             {
                 ImGui.ShowDemoWindow(ref demoWindow);
             }
+
+            this.AddOrGetImagePointer("image", image, true, out var handle);
+            ImGui.GetBackgroundDrawList().AddImage(handle, new Vector2(200f), new Vector2(300f));
         }
     }
 }
