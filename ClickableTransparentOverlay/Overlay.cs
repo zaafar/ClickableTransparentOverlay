@@ -26,6 +26,7 @@
         private readonly string title;
         private readonly Format format;
 
+        private WNDCLASSEX wndClass;
         private Win32Window window;
         private ID3D11Device device;
         private ID3D11DeviceContext deviceContext;
@@ -351,7 +352,11 @@
 
             if (this.selfPointer != IntPtr.Zero)
             {
-                _ = User32.UnregisterClass(this.title, this.selfPointer);
+                if (!User32.UnregisterClass(this.title, this.selfPointer))
+                {
+                    throw new Exception($"Failed to Unregister {this.title} class during dispose.");
+                }
+
                 this.selfPointer = IntPtr.Zero;
             }
 
@@ -455,7 +460,7 @@
                 out this.device,
                 out this.deviceContext);
             this.selfPointer = Kernel32.GetModuleHandle(null);
-            var wndClass = new WNDCLASSEX
+            this.wndClass = new WNDCLASSEX
             {
                 Size = Unsafe.SizeOf<WNDCLASSEX>(),
                 Styles = WindowClassStyles.CS_HREDRAW | WindowClassStyles.CS_VREDRAW | WindowClassStyles.CS_PARENTDC,
@@ -464,10 +469,14 @@
                 CursorHandle = User32.LoadCursor(IntPtr.Zero, SystemCursor.IDC_ARROW),
                 BackgroundBrushHandle = IntPtr.Zero,
                 IconHandle = IntPtr.Zero,
-                ClassName = "WndClass",
+                ClassName = this.title,
             };
 
-            User32.RegisterClassEx(ref wndClass);
+            if (User32.RegisterClassEx(ref this.wndClass) == 0)
+            {
+                throw new Exception($"Failed to Register class of name {this.wndClass.ClassName}");
+            }
+
             this.window = new Win32Window(
                 wndClass.ClassName,
                 800,
