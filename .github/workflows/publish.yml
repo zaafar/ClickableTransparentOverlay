@@ -1,49 +1,31 @@
 name: publish to nuget
 on:
+  create: # when tags are created
   push:
     branches:
       - master # Default release branch, may also be named 'master' or 'develop'
 jobs:
-  publish:
+  windows_latest:
     name: build, pack & publish
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout Repository
+        uses: actions/checkout@v3
 
-      # Publish
-      - name: publish on version change
-        id: publish_nuget
-        uses: brandedoutcast/publish-nuget@v2
+      - name: Install .NET
+        uses: actions/setup-dotnet@v3
         with:
-          # Filepath of the project to be packaged, relative to root of repository
-          PROJECT_FILE_PATH: ClickableTransparentOverlay/ClickableTransparentOverlay.csproj
+          dotnet-version: 6.x.x
 
-          # Configuration to build and package
-          BUILD_CONFIGURATION: Release
+      - name: Restore dependencies
+        run: dotnet restore ClickableTransparentOverlay
 
-          # NuGet package id, used for version detection & defaults to project name
-          PACKAGE_NAME: ClickableTransparentOverlay
+      - name: Build Project
+        run: dotnet build -c Release --no-restore ClickableTransparentOverlay
 
-          # Filepath with version info, relative to root of repository & defaults to PROJECT_FILE_PATH
-          VERSION_FILE_PATH: ClickableTransparentOverlay/ClickableTransparentOverlay.csproj
+      - name: Packages Project
+        run: dotnet pack ClickableTransparentOverlay/ClickableTransparentOverlay.csproj -c Release --no-restore --no-build
 
-          # Regex pattern to extract version info in a capturing group
-          VERSION_REGEX: ^\s*<Version>(.*)<\/Version>\s*$
-
-          # Useful with external providers like Nerdbank.GitVersioning, ignores VERSION_FILE_PATH & VERSION_REGEX
-          # VERSION_STATIC: 1.0.0
-
-          # Flag to toggle git tagging, enabled by default
-          TAG_COMMIT: true
-
-          # Format of the git tag, [*] gets replaced with actual version
-          TAG_FORMAT: v*
-
-          # API key to authenticate with NuGet server
-          NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-
-          # NuGet server uri hosting the packages, defaults to https://api.nuget.org
-          NUGET_SOURCE: https://api.nuget.org
-
-          # Flag to toggle pushing symbols along with nuget package to the server, disabled by default
-          # INCLUDE_SYMBOLS: false
+      - name: Publish to nuget.org
+        if: startsWith(github.ref, 'refs/tags/')
+        run: dotnet nuget push ClickableTransparentOverlay\bin\Release\*.nupkg -s https://api.nuget.org/v3/index.json --api-key ${{secrets.NUGET_API_KEY}}

@@ -18,3 +18,10 @@ follow (if not identical to) the official example in c++ ImGui library
 ([here](https://github.com/ocornut/imgui/blob/master/backends/imgui_impl_dx11.cpp "Last changelog looked was 2022-10-11")
 and [here](https://github.com/ocornut/imgui/blob/master/backends/imgui_impl_win32.cpp "Last changelog looked was 2022-01-26")).
 This allows us to easily update this library if something changes over there.
+
+
+# To Trigger a release push a tag as shown below
+
+git tag -a 6.0.5 -m "version 6.0.5"
+
+git push origin 6.0.5
