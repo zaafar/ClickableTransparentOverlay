@@ -28,4 +28,4 @@ jobs:
 
       - name: Publish to nuget.org
         if: startsWith(github.ref, 'refs/tags/')
-        run: dotnet nuget push ClickableTransparentOverlay\bin\Release\*.nupkg -s https://api.nuget.org/v3/index.json --api-key ${{secrets.NUGET_API_KEY}}
+        run: dotnet nuget push ClickableTransparentOverlay\bin\Release\* -s https://api.nuget.org/v3/index.json --api-key ${{secrets.NUGET_API_KEY}}
