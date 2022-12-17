@@ -218,7 +218,7 @@
             {
                 if (this.window.Dimensions.Location != value)
                 {
-                    User32.MoveWindow(this.window.Handle, value.X, value.Y, this.window.Dimensions.Width, this.window.Dimensions.Width, true);
+                    User32.MoveWindow(this.window.Handle, value.X, value.Y, this.window.Dimensions.Width, this.window.Dimensions.Height, true);
                     this.window.Dimensions.Location = value;
                 }
             }
@@ -237,7 +237,7 @@
             {
                 if (this.window.Dimensions.Size != value)
                 {
-                    User32.MoveWindow(this.window.Handle, this.window.Dimensions.X, this.window.Dimensions.X, value.Width, value.Height, true);
+                    User32.MoveWindow(this.window.Handle, this.window.Dimensions.X, this.window.Dimensions.Y, value.Width, value.Height, true);
                     this.window.Dimensions.Size = value;
                 }
             }
