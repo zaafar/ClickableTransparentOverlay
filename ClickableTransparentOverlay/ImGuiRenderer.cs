@@ -232,8 +232,7 @@
         public void UpdateFontTexture(string fontPathName, float fontSize, ushort[]? fontCustomGlyphRange, FontGlyphRangeType fontLanguage)
         {
             var io = ImGui.GetIO();
-            this.DeRegisterTexture(io.Fonts.TexID)?.Release();
-            this.fontSampler?.Release();
+            this.DeRegisterTexture(io.Fonts.TexID)?.Dispose();
             io.Fonts.Clear();
             var config = ImGuiNative.ImFontConfig_ImFontConfig();
             if (fontCustomGlyphRange == null)
@@ -317,6 +316,11 @@
                 0,
                 texDesc.MipLevels);
             io.Fonts.SetTexID(RegisterTexture(device.CreateShaderResourceView(texture, resViewDesc)));
+            io.Fonts.ClearTexData();
+        }
+
+        void CreateFontSampler()
+        {
             var samplerDesc = new SamplerDescription(
                 Filter.MinMagMipLinear,
                 TextureAddressMode.Wrap,
@@ -329,7 +333,6 @@
                 0f);
 
             this.fontSampler = device.CreateSamplerState(samplerDesc);
-            io.Fonts.ClearTexData();
         }
 
         IntPtr RegisterTexture(ID3D11ShaderResourceView texture)
@@ -448,6 +451,7 @@
             depthStencilState = device.CreateDepthStencilState(depthDesc);
 
             this.CreateFontsTexture();
+            this.CreateFontSampler();
         }
 
 #if false
