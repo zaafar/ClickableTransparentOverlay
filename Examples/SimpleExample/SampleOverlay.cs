@@ -3,13 +3,13 @@
     using ClickableTransparentOverlay;
     using System.Threading.Tasks;
     using ImGuiNET;
-    using System.Numerics;
 
     internal class SampleOverlay : Overlay
     {
         private bool wantKeepDemoWindow = true;
         protected override Task PostInitialized()
         {
+            this.VSync = false;
             return Task.CompletedTask;
         }
 
