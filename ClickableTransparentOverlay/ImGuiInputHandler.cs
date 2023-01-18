@@ -30,6 +30,15 @@
                 UpdateMouseCursor(io, mouseCursor);
             }
 
+            if (!io.WantCaptureMouse && ImGui.IsAnyMouseDown())
+            {
+                // workaround: where overlay gets stuck in a non-clickable mode forever.
+                for (var i = 0; i < 5; i++)
+                {
+                    io.AddMouseButtonEvent(i, false);
+                }
+            }
+
             return io.WantCaptureMouse;
         }
 

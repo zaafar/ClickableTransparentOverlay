@@ -85,7 +85,6 @@
             if (Utils.IsKeyPressedAndNotTimeout(VK.F12)) //F12.
             {
                 state.ShowClickableMenu = !state.ShowClickableMenu;
-                ImGui.GetIO().WantCaptureMouse = true; // workaround: where overlay gets stuck in non-clickable mode forever.
             }
             
             if (state.ShowImGuiDemo)
