@@ -315,8 +315,9 @@
         /// <returns> true if the image is removed otherwise false.</returns>
         public bool RemoveImage(string key)
         {
-            if (this.loadedTexturesPtrs.Remove(key, out var data))
+            if (this.loadedTexturesPtrs.TryGetValue(key, out var data))
             {
+                this.loadedTexturesPtrs.Remove(key);
                 return this.renderer.RemoveImageTexture(data.Handle);
             }
 
@@ -469,7 +470,11 @@
                 CursorHandle = User32.LoadCursor(IntPtr.Zero, SystemCursor.IDC_ARROW),
                 BackgroundBrushHandle = IntPtr.Zero,
                 IconHandle = IntPtr.Zero,
+                MenuName = string.Empty,
                 ClassName = this.title,
+                SmallIconHandle= IntPtr.Zero,
+                ClassExtraBytes = 0,
+                WindowExtraBytes = 0
             };
 
             if (User32.RegisterClassEx(ref this.wndClass) == 0)
