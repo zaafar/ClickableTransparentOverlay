@@ -1,7 +1,6 @@
 ﻿namespace ClickableTransparentOverlay
 {
     using ImGuiNET;
-    using SixLabors.ImageSharp.ColorSpaces.Conversion;
     using System;
     using Win32;
 
