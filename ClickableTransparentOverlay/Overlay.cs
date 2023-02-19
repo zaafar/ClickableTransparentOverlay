@@ -315,9 +315,8 @@
         /// <returns> true if the image is removed otherwise false.</returns>
         public bool RemoveImage(string key)
         {
-            if (this.loadedTexturesPtrs.TryGetValue(key, out var data))
+            if (this.loadedTexturesPtrs.Remove(key, out var data))
             {
-                this.loadedTexturesPtrs.Remove(key);
                 return this.renderer.RemoveImageTexture(data.Handle);
             }
 
