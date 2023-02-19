@@ -309,11 +309,14 @@
         /// <returns>true if image is removed otherwise false.</returns>
         public bool RemoveImage(string name)
         {
-            if (loadedImages.Remove(name, out Texture texture))
+            if (loadedImages.ContainsKey(name))
             {
+                var texture = loadedImages[name];
+                this.loadedImages.Remove(name);
                 imController.RemoveImGuiBinding(texture);
                 texture.Dispose();
                 return true;
+
             }
 
             return false;
