@@ -1,0 +1,31 @@
+name: publish to nuget
+on:
+  create: # when tags are created
+  push:
+    branches:
+      - f/net48 # Default release branch, may also be named 'master' or 'develop'
+jobs:
+  windows_latest:
+    name: build, pack & publish
+    runs-on: windows-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Install .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: 4.8.x
+
+      - name: Restore dependencies
+        run: dotnet restore ClickableTransparentOverlay
+
+      - name: Build Project
+        run: dotnet build -c Release --no-restore ClickableTransparentOverlay
+
+      - name: Packages Project
+        run: dotnet pack ClickableTransparentOverlay/ClickableTransparentOverlay.csproj -c Release --no-restore --no-build
+
+      - name: Publish to nuget.org
+        if: startsWith(github.ref, 'refs/tags/')
+        run: dotnet nuget push ClickableTransparentOverlay\bin\Release\* -s https://api.nuget.org/v3/index.json --api-key ${{secrets.NUGET_API_KEY}}
