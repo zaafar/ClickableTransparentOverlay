@@ -338,16 +338,15 @@
         IntPtr RegisterTexture(ID3D11ShaderResourceView texture)
         {
             var imguiID = texture.NativePointer;
-            textureResources[imguiID] = texture;
+            textureResources.TryAdd(imguiID, texture);
             return imguiID;
         }
 
         ID3D11ShaderResourceView? DeRegisterTexture(IntPtr texturePtr)
         {
-            if (this.textureResources.TryGetValue(texturePtr, out var value))
+            if (textureResources.Remove(texturePtr, out var texture))
             {
-                this.textureResources.Remove(texturePtr);
-                return value;
+                return texture;
             }
 
             return null;
