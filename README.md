@@ -7,9 +7,10 @@ https://www.nuget.org/packages/ClickableTransparentOverlay
 
 # Dependencies
 
-* [.NET 6](https://dotnet.microsoft.com/en-us/download/dotnet/6.0)
+* [.NET 7](https://dotnet.microsoft.com/en-us/download/dotnet/7.0)
 * [Vortice.Windows](https://github.com/amerkoleci/Vortice.Windows)
 * [ImGui.NET](https://github.com/mellinoe/ImGui.NET/)
+* [ImageSharp](https://github.com/SixLabors/ImageSharp)
 
 # Reference code to watch
 
@@ -22,6 +23,6 @@ This allows us to easily update this library if something changes over there.
 
 # To Trigger a release push a tag as shown below
 
-git tag -a 6.0.5 -m "version 6.0.5"
+git tag -a 8.0.0 -m "version 8.0.0"
 
-git push origin 6.0.5
+git push origin 8.0.0
