@@ -3,6 +3,7 @@
     using ClickableTransparentOverlay.Win32;
     using SixLabors.ImageSharp;
     using SixLabors.ImageSharp.PixelFormats;
+    using SixLabors.ImageSharp.Formats;
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
@@ -275,9 +276,9 @@
             }
             else
             {
-                var configuration = Configuration.Default.Clone();
-                configuration.PreferContiguousImageBuffers = true;
-                using var image = Image.Load<Rgba32>(configuration, filePath);
+                var decorderOptions = new DecoderOptions();
+                decorderOptions.Configuration.PreferContiguousImageBuffers = true;
+                using var image = Image.Load<Rgba32>(decorderOptions, filePath);
                 handle = this.renderer.CreateImageTexture(image, srgb ? Format.R8G8B8A8_UNorm_SRgb : Format.R8G8B8A8_UNorm);
                 width = (uint)image.Width;
                 height = (uint)image.Height;
