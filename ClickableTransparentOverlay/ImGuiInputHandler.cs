@@ -49,6 +49,10 @@
             var io = ImGui.GetIO();
             switch (msg)
             {
+                case WindowMessage.SetFocus:
+                case WindowMessage.KillFocus:
+                    io.AddFocusEvent(msg == WindowMessage.SetFocus);
+                    break;
                 case WindowMessage.LButtonDown:
                 case WindowMessage.LButtonDoubleClick:
                 case WindowMessage.LButtonUp:
@@ -75,7 +79,7 @@
                     io.AddMouseWheelEvent(0.0f, GET_WHEEL_DELTA_WPARAM(wParam) / WHEEL_DELTA);
                     break;
                 case WindowMessage.MouseHWheel:
-                    io.AddMouseWheelEvent(GET_WHEEL_DELTA_WPARAM(wParam) / WHEEL_DELTA, 0.0f);
+                    io.AddMouseWheelEvent(-GET_WHEEL_DELTA_WPARAM(wParam) / WHEEL_DELTA, 0.0f);
                     break;
                 case WindowMessage.KeyDown:
                 case WindowMessage.SysKeyDown:

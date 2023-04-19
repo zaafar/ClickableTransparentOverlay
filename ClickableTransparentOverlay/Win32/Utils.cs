@@ -88,7 +88,6 @@
                 if (WantClickable)
                 {
                     User32.SetWindowLong(handle, (int)WindowLongParam.GWL_EXSTYLE, (uint)Clickable);
-                    User32.SetFocus(handle);
                 }
                 else
                 {
