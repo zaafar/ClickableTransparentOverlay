@@ -18,6 +18,8 @@
     using Vortice.Mathematics;
     using Point = System.Drawing.Point;
     using Size = System.Drawing.Size;
+    using ImGuiNET;
+    using System.Collections.Concurrent;
 
     /// <summary>
     /// A class to create clickable transparent overlay on windows machine.
@@ -44,13 +46,9 @@
         private volatile CancellationTokenSource cancellationTokenSource;
         private volatile bool overlayIsReady;
 
-        private bool replaceFont = false;
-        private ushort[]? fontCustomGlyphRange;
-        private string fontPathName;
-        private float fontSize;
-        private FontGlyphRangeType fontLanguage;
-
         private Dictionary<string, (IntPtr Handle, uint Width, uint Height)> loadedTexturesPtrs;
+
+        private readonly ConcurrentQueue<FontHelper.FontLoadDelegate> fontUpdates;
 
         #region Constructors
 
@@ -99,6 +97,7 @@
             this.cancellationTokenSource = new();
             this.format = Format.R8G8B8A8_UNorm;
             this.loadedTexturesPtrs = new();
+            this.fontUpdates = new();
             if (DPIAware)
             {
                 User32.SetProcessDPIAware();
@@ -118,6 +117,7 @@
             this.renderThread = new Thread(async () =>
             {
                 await this.InitializeResources();
+                this.ReplaceFontIfRequired();
                 this.renderer.Start();
                 this.RunInfiniteLoop(this.cancellationTokenSource.Token);
             });
@@ -164,18 +164,32 @@
         /// <param name="size">font size to load.</param>
         /// <param name="language">supported language by the font.</param>
         /// <returns>true if the font replacement is valid otherwise false.</returns>
-        public bool ReplaceFont(string pathName, int size, FontGlyphRangeType language)
+        public unsafe bool ReplaceFont(string pathName, int size, FontGlyphRangeType language)
         {
             if (!File.Exists(pathName))
             {
                 return false;
             }
 
-            this.fontPathName = pathName;
-            this.fontSize = size;
-            this.fontLanguage = language;
-            this.replaceFont = true;
-            this.fontCustomGlyphRange = null;
+            this.fontUpdates.Enqueue(config =>
+            {
+                var io = ImGui.GetIO();
+                var glyphRange = language switch
+                {
+                    FontGlyphRangeType.English => io.Fonts.GetGlyphRangesDefault(),
+                    FontGlyphRangeType.ChineseSimplifiedCommon => io.Fonts.GetGlyphRangesChineseSimplifiedCommon(),
+                    FontGlyphRangeType.ChineseFull => io.Fonts.GetGlyphRangesChineseFull(),
+                    FontGlyphRangeType.Japanese => io.Fonts.GetGlyphRangesJapanese(),
+                    FontGlyphRangeType.Korean => io.Fonts.GetGlyphRangesKorean(),
+                    FontGlyphRangeType.Thai => io.Fonts.GetGlyphRangesThai(),
+                    FontGlyphRangeType.Vietnamese => io.Fonts.GetGlyphRangesVietnamese(),
+                    FontGlyphRangeType.Cyrillic => io.Fonts.GetGlyphRangesCyrillic(),
+                    _ => throw new Exception($"Font Glyph Range (${language}) is not supported.")
+                };
+
+                io.Fonts.AddFontFromFileTTF(pathName, size, config, glyphRange);
+            });
+
             return true;
         }
 
@@ -186,17 +200,47 @@
         /// <param name="size">font size to load.</param>
         /// <param name="glyphRange">custom glyph range of the font to load. Read <see cref="FontGlyphRangeType"/> for more detail.</param>
         /// <returns>>true if the font replacement is valid otherwise false.</returns>
-        public bool ReplaceFont(string pathName, int size, ushort[] glyphRange)
+        public unsafe bool ReplaceFont(string pathName, int size, ushort[] glyphRange)
         {
             if (!File.Exists(pathName))
             {
                 return false;
             }
 
-            fontPathName = pathName;
-            fontSize = size;
-            fontCustomGlyphRange = glyphRange;
-            replaceFont = true;
+            this.fontUpdates.Enqueue(config =>
+            {
+                var io = ImGui.GetIO();
+                fixed (ushort* p = &glyphRange[0])
+                {
+                    io.Fonts.AddFontFromFileTTF(pathName, size, config, new IntPtr(p));
+                }
+            });
+
+            return true;
+        }
+
+        /// <summary>
+        /// Replaces the ImGui font with the default ImGui font.
+        /// </summary>
+        /// <returns>always return true</returns>
+        public unsafe bool ReplaceFont()
+        {
+            this.fontUpdates.Enqueue(config =>
+            {
+                var io = ImGui.GetIO();
+                io.Fonts.AddFontDefault(config);
+            });
+
+            return true;
+        }
+
+        /// <summary>
+        /// Replaces the ImGui font with another one.
+        /// </summary>
+        /// <param name="fontLoadDelegate">instructions for loading the font</param>
+        public bool ReplaceFont(FontHelper.FontLoadDelegate fontLoadDelegate)
+        {
+            this.fontUpdates.Enqueue(fontLoadDelegate);
             return true;
         }
 
@@ -342,6 +386,7 @@
                 }
 
                 this.cancellationTokenSource?.Dispose();
+                this.fontUpdates?.Clear();
                 this.swapChain?.Release();
                 this.backBuffer?.Release();
                 this.renderView?.Release();
@@ -408,10 +453,12 @@
 
         private void ReplaceFontIfRequired()
         {
-            if (this.replaceFont && this.renderer != null)
+            if (this.renderer != null)
             {
-                this.renderer.UpdateFontTexture(this.fontPathName, this.fontSize, this.fontCustomGlyphRange, this.fontLanguage);
-                this.replaceFont = false;
+                while (this.fontUpdates.TryDequeue(out var update))
+                {
+                    this.renderer.UpdateFontTexture(update);
+                }
             }
         }
 

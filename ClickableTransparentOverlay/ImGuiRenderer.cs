@@ -229,52 +229,13 @@
             return tex != null;
         }
 
-        public void UpdateFontTexture(string fontPathName, float fontSize, ushort[]? fontCustomGlyphRange, FontGlyphRangeType fontLanguage)
+        public void UpdateFontTexture(FontHelper.FontLoadDelegate fontLoadFunc)
         {
             var io = ImGui.GetIO();
             this.DeRegisterTexture(io.Fonts.TexID)?.Dispose();
             io.Fonts.Clear();
             var config = ImGuiNative.ImFontConfig_ImFontConfig();
-            if (fontCustomGlyphRange == null)
-            {
-                switch (fontLanguage)
-                {
-                    case FontGlyphRangeType.English:
-                        io.Fonts.AddFontFromFileTTF(fontPathName, fontSize, config, io.Fonts.GetGlyphRangesDefault());
-                        break;
-                    case FontGlyphRangeType.ChineseSimplifiedCommon:
-                        io.Fonts.AddFontFromFileTTF(fontPathName, fontSize, config, io.Fonts.GetGlyphRangesChineseSimplifiedCommon());
-                        break;
-                    case FontGlyphRangeType.ChineseFull:
-                        io.Fonts.AddFontFromFileTTF(fontPathName, fontSize, config, io.Fonts.GetGlyphRangesChineseFull());
-                        break;
-                    case FontGlyphRangeType.Japanese:
-                        io.Fonts.AddFontFromFileTTF(fontPathName, fontSize, config, io.Fonts.GetGlyphRangesJapanese());
-                        break;
-                    case FontGlyphRangeType.Korean:
-                        io.Fonts.AddFontFromFileTTF(fontPathName, fontSize, config, io.Fonts.GetGlyphRangesKorean());
-                        break;
-                    case FontGlyphRangeType.Thai:
-                        io.Fonts.AddFontFromFileTTF(fontPathName, fontSize, config, io.Fonts.GetGlyphRangesThai());
-                        break;
-                    case FontGlyphRangeType.Vietnamese:
-                        io.Fonts.AddFontFromFileTTF(fontPathName, fontSize, config, io.Fonts.GetGlyphRangesVietnamese());
-                        break;
-                    case FontGlyphRangeType.Cyrillic:
-                        io.Fonts.AddFontFromFileTTF(fontPathName, fontSize, config, io.Fonts.GetGlyphRangesCyrillic());
-                        break;
-                    default:
-                        throw new Exception($"Font Glyph Range (${fontLanguage}) is not supported.");
-                }
-            }
-            else
-            {
-                fixed (ushort* p = &fontCustomGlyphRange[0])
-                {
-                    io.Fonts.AddFontFromFileTTF(fontPathName, fontSize, config, new IntPtr(p));
-                }
-            }
-
+            fontLoadFunc(config);
             this.CreateFontsTexture();
             ImGuiNative.ImFontConfig_destroy(config);
         }
