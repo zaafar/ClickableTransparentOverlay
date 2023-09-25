@@ -113,17 +113,20 @@
 
             if (ImGui.Button("Change Font (更改字体)"))
             {
-                ReplaceFont(@"C:\Windows\Fonts\msyh.ttc", fontSize, FontGlyphRangeType.ChineseSimplifiedCommon);
+                this.ReplaceFont(@"C:\Windows\Fonts\msyh.ttc", fontSize, FontGlyphRangeType.ChineseSimplifiedCommon);
+                font2 = null;
             }
 
             if (ImGui.Button("Change Font (更改字体) Custom Range"))
             {
-                ReplaceFont(@"C:\Windows\Fonts\msyh.ttc", fontSize, custom1);
+                this.ReplaceFont(@"C:\Windows\Fonts\msyh.ttc", fontSize, custom1);
+                font2 = null;
             }
 
             if (ImGui.Button("Add default font"))
             {
                 this.ReplaceFont();
+                font2 = null;
             }
 
             if (font2 != null)
@@ -131,6 +134,7 @@
                 ImGui.PushFont(font2.Value);
             }
 
+            ImGui.ShowFontSelector("foo");
             if (ImGui.Button("Add two fonts (更改字体)"))
             {
                 this.ReplaceFont(config =>
@@ -158,6 +162,7 @@
 
             if (ImGui.Button("Merge two Fonts (\uf2b8 + \uf592 + 更改字体)"))
             {
+                font2 = null;
                 this.ReplaceFont(config =>
                 {
                     var io = ImGui.GetIO();
