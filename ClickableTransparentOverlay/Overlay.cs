@@ -188,6 +188,7 @@
                 };
 
                 io.Fonts.AddFontFromFileTTF(pathName, size, config, glyphRange);
+                ImGuiNative.igGetIO()->FontDefault = null;
             });
 
             return true;
@@ -213,6 +214,7 @@
                 fixed (ushort* p = &glyphRange[0])
                 {
                     io.Fonts.AddFontFromFileTTF(pathName, size, config, new IntPtr(p));
+                    ImGuiNative.igGetIO()->FontDefault = null;
                 }
             });
 
@@ -229,6 +231,7 @@
             {
                 var io = ImGui.GetIO();
                 io.Fonts.AddFontDefault(config);
+                ImGuiNative.igGetIO()->FontDefault = null;
             });
 
             return true;
@@ -238,8 +241,10 @@
         /// Replaces the ImGui font with another one.
         /// </summary>
         /// <param name="fontLoadDelegate">instructions for loading the font</param>
-        public bool ReplaceFont(FontHelper.FontLoadDelegate fontLoadDelegate)
+        public unsafe bool ReplaceFont(FontHelper.FontLoadDelegate fontLoadDelegate)
         {
+            // have to do this because of issue: https://github.com/ocornut/imgui/issues/6858
+            ImGuiNative.igGetIO()->FontDefault = null;
             this.fontUpdates.Enqueue(fontLoadDelegate);
             return true;
         }
