@@ -88,6 +88,11 @@
                     bool is_key_down = msg == WindowMessage.SysKeyDown || msg == WindowMessage.KeyDown;
                     if ((ulong)wParam < 256 && TryMapKey((VK)wParam, out ImGuiKey imguikey))
                     {
+                        if (imguikey == ImGuiKey.PrintScreen && !is_key_down)
+                        {
+                            io.AddKeyEvent(imguikey, true);
+                        }
+
                         io.AddKeyEvent(imguikey, is_key_down);
                     }
 
@@ -161,7 +166,7 @@
 
             result = key switch
             {
-                >= VK.F1 and <= VK.F12 => KeyToImGuiKeyShortcut(key, VK.F1, ImGuiKey.F1),
+                >= VK.F1 and <= VK.F24 => KeyToImGuiKeyShortcut(key, VK.F1, ImGuiKey.F1),
                 >= VK.NUMPAD0 and <= VK.NUMPAD9 => KeyToImGuiKeyShortcut(key, VK.NUMPAD0, ImGuiKey.Keypad0),
                 >= VK.KEY_A and <= VK.KEY_Z => KeyToImGuiKeyShortcut(key, VK.KEY_A, ImGuiKey.A),
                 >= VK.KEY_0 and <= VK.KEY_9 => KeyToImGuiKeyShortcut(key, VK.KEY_0, ImGuiKey._0),
@@ -213,6 +218,8 @@
                 VK.RMENU => ImGuiKey.RightAlt,
                 VK.RWIN => ImGuiKey.RightSuper,
                 VK.APPS => ImGuiKey.Menu,
+                VK.BROWSER_BACK => ImGuiKey.AppBack,
+                VK.BROWSER_FORWARD => ImGuiKey.AppForward,
                 _ => ImGuiKey.None
             };
 

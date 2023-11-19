@@ -9,7 +9,7 @@
     <Description>A library to create transparent overlays on the windows machines.</Description>
     <PackageProjectUrl>https://github.com/zaafar/ClickableTransparentOverlay</PackageProjectUrl>
     <RepositoryUrl>https://github.com/zaafar/ClickableTransparentOverlay</RepositoryUrl>
-    <Version>9.0.1</Version>
+    <Version>9.1.0</Version>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
@@ -24,10 +24,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="ImGui.NET" Version="1.89.9.2" />
+    <PackageReference Include="ImGui.NET" Version="1.90.0.1" />
     <PackageReference Include="SixLabors.ImageSharp" Version="3.0.2" />
-    <PackageReference Include="Vortice.D3DCompiler" Version="3.2.0" />
-    <PackageReference Include="Vortice.Direct3D11" Version="3.2.0" />
+    <PackageReference Include="Vortice.D3DCompiler" Version="3.3.4" />
+    <PackageReference Include="Vortice.Direct3D11" Version="3.3.4" />
   </ItemGroup>
 
 </Project>

@@ -17,7 +17,7 @@ https://www.nuget.org/packages/ClickableTransparentOverlay
 Lots of classes in this library (e.g. ImGuiRenderer, ImGuiInputHandler and etc) closely
 follow (if not identical to) the official example in c++ ImGui library
 ([here](https://github.com/ocornut/imgui/blob/master/backends/imgui_impl_dx11.cpp "Last changelog looked was 2022-10-11")
-and [here](https://github.com/ocornut/imgui/blob/master/backends/imgui_impl_win32.cpp "Last changelog looked was 2023-04-04")).
+and [here](https://github.com/ocornut/imgui/blob/master/backends/imgui_impl_win32.cpp "Last changelog looked was 2023-10-05")).
 This allows us to easily update this library if something changes over there.
 
 
