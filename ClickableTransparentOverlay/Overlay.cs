@@ -255,6 +255,22 @@
         public bool VSync;
 
         /// <summary>
+        /// Moves the Overlay Window to the specific position and size
+        /// </summary>
+        /// <param name="x">X-Coordinate</param>
+        /// <param name="y">Y-Coordiante</param>
+        /// <param name="width">Width of the Overlay Window</param>
+        /// <param name="height">Height of the Overlay Window</param>
+        public void MoveOverlay(int x, int y, int width, int height)
+        {
+            User32.ShowWindow(this.window.Handle, ShowWindowCommand.Normal);
+            User32.MoveWindow(this.window.Handle, x, y, width, height, true);
+            User32.ShowWindow(this.window.Handle, ShowWindowCommand.ShowMaximized);
+            Position = new(x, y);
+            Size = new(width, height);
+        }
+
+        /// <summary>
         /// Gets or sets the position of the overlay window.
         /// </summary>
         public Point Position
@@ -268,7 +284,6 @@
             {
                 if (this.window.Dimensions.Location != value)
                 {
-                    User32.MoveWindow(this.window.Handle, value.X, value.Y, this.window.Dimensions.Width, this.window.Dimensions.Height, true);
                     this.window.Dimensions.Location = value;
                 }
             }
@@ -287,7 +302,7 @@
             {
                 if (this.window.Dimensions.Size != value)
                 {
-                    User32.MoveWindow(this.window.Handle, this.window.Dimensions.X, this.window.Dimensions.Y, value.Width, value.Height, true);
+                    
                     this.window.Dimensions.Size = value;
                 }
             }
