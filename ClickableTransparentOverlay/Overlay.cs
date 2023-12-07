@@ -268,8 +268,8 @@
             {
                 if (this.window.Dimensions.Location != value)
                 {
-                    User32.MoveWindow(this.window.Handle, value.X, value.Y, this.window.Dimensions.Width, this.window.Dimensions.Height, true);
                     this.window.Dimensions.Location = value;
+                    User32.MoveWindow(this.window.Handle, value.X, value.Y, this.window.Dimensions.Width, this.window.Dimensions.Height, true);
                 }
             }
         }
@@ -287,8 +287,8 @@
             {
                 if (this.window.Dimensions.Size != value)
                 {
-                    User32.MoveWindow(this.window.Handle, this.window.Dimensions.X, this.window.Dimensions.Y, value.Width, value.Height, true);
                     this.window.Dimensions.Size = value;
+                    User32.MoveWindow(this.window.Handle, this.window.Dimensions.X, this.window.Dimensions.Y, value.Width, value.Height, true);
                 }
             }
         }
@@ -467,7 +467,7 @@
             }
         }
 
-        private void OnResize()
+        private void OnResize(int width, int height)
         {
             if (renderView == null)//first show
             {
@@ -475,7 +475,7 @@
                 var swapchainDesc = new SwapChainDescription()
                 {
                     BufferCount = 1,
-                    BufferDescription = new ModeDescription(this.window.Dimensions.Width, this.window.Dimensions.Height, this.format),
+                    BufferDescription = new ModeDescription(width, height, this.format),
                     Windowed = true,
                     OutputWindow = this.window.Handle,
                     SampleDescription = new SampleDescription(1, 0),
@@ -494,13 +494,13 @@
                 this.renderView.Dispose();
                 this.backBuffer.Dispose();
 
-                this.swapChain.ResizeBuffers(1, this.window.Dimensions.Width, this.window.Dimensions.Height, this.format, SwapChainFlags.None);
+                this.swapChain.ResizeBuffers(1, width, height, this.format, SwapChainFlags.None);
 
                 backBuffer = this.swapChain.GetBuffer<ID3D11Texture2D1>(0);
                 renderView = this.device.CreateRenderTargetView(backBuffer);
             }
 
-            this.renderer.Resize(this.window.Dimensions.Width, this.window.Dimensions.Height);
+            this.renderer.Resize(width, height);
         }
 
         private async Task InitializeResources()
@@ -547,7 +547,7 @@
             this.inputhandler = new ImGuiInputHandler(this.window.Handle);
             this.overlayIsReady = true;
             await this.PostInitialized();
-            User32.ShowWindow(this.window.Handle, ShowWindowCommand.ShowMaximized);
+            User32.ShowWindow(this.window.Handle, ShowWindowCommand.Show);
             Utils.InitTransparency(this.window.Handle);
         }
 
@@ -555,15 +555,16 @@
         {
             switch (msg)
             {
+                case WindowMessage.ShowWindow:
+                    this.OnResize(this.window.Dimensions.Width, this.window.Dimensions.Height);
+                    break;
                 case WindowMessage.Size:
                     switch ((SizeMessage)wParam)
                     {
                         case SizeMessage.SIZE_RESTORED:
                         case SizeMessage.SIZE_MAXIMIZED:
                             var lp = (int)lParam;
-                            this.window.Dimensions.Width = Utils.Loword(lp);
-                            this.window.Dimensions.Height = Utils.Hiword(lp);
-                            this.OnResize();
+                            this.OnResize(Utils.Loword(lp), Utils.Hiword(lp));
                             break;
                         default:
                             break;
