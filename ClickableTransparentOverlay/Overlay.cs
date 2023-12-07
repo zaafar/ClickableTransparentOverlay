@@ -558,9 +558,6 @@
                 case WindowMessage.ShowWindow:
                     this.OnResize(this.window.Dimensions.Width, this.window.Dimensions.Height);
                     break;
-//                case WindowMessage.WindowPositionChanged:
-//                    this.OnResize(this.window.Dimensions.Width, this.window.Dimensions.Height);
-//                    break;
                 case WindowMessage.Size:
                     switch ((SizeMessage)wParam)
                     {
