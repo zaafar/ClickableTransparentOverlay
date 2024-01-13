@@ -9,7 +9,7 @@
     <Description>A library to create transparent overlays on the windows machines.</Description>
     <PackageProjectUrl>https://github.com/zaafar/ClickableTransparentOverlay</PackageProjectUrl>
     <RepositoryUrl>https://github.com/zaafar/ClickableTransparentOverlay</RepositoryUrl>
-    <Version>9.2.0</Version>
+    <Version>9.3.0</Version>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
