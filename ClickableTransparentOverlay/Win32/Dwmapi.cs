@@ -1,35 +1,34 @@
-﻿namespace ClickableTransparentOverlay.Win32
+﻿using System;
+using System.Runtime.InteropServices;
+
+namespace ClickableTransparentOverlay.Win32;
+
+internal static class Dwmapi
 {
-    using System;
-    using System.Runtime.InteropServices;
+    public const string LibraryName = "dwmapi.dll";
 
-    internal static class Dwmapi
+    [DllImport(LibraryName)]
+    internal static extern int DwmExtendFrameIntoClientArea(IntPtr hWnd, ref Margins pMarInset);
+
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct Margins
     {
-        public const string LibraryName = "dwmapi.dll";
+        private readonly int left;
+        private readonly int right;
+        private readonly int top;
+        private readonly int bottom;
 
-        [DllImport(LibraryName)]
-        internal static extern int DwmExtendFrameIntoClientArea(IntPtr hWnd, ref Margins pMarInset);
-
-        [StructLayout(LayoutKind.Sequential)]
-        internal struct Margins
+        internal Margins(int l)
         {
-            private readonly int left;
-            private readonly int right;
-            private readonly int top;
-            private readonly int bottom;
+            this.left = this.right = this.top = this.bottom = l;
+        }
 
-            internal Margins(int l)
-            {
-                this.left = this.right = this.top = this.bottom = l;
-            }
-
-            internal Margins(int l, int r, int t, int b)
-            {
-                this.left = l;
-                this.right = r;
-                this.top = t;
-                this.bottom = b;
-            }
+        internal Margins(int l, int r, int t, int b)
+        {
+            this.left = l;
+            this.right = r;
+            this.top = t;
+            this.bottom = b;
         }
     }
 }

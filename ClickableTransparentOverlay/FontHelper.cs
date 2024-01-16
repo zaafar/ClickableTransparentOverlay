@@ -1,9 +1,8 @@
-﻿namespace ClickableTransparentOverlay
-{
-    using ImGuiNET;
+﻿using ImGuiNET;
 
-    public static class FontHelper
-    {
-        public unsafe delegate void FontLoadDelegate(ImFontConfig* fontConfig);
-    }
+namespace ClickableTransparentOverlay;
+
+public static class FontHelper
+{
+    public unsafe delegate void FontLoadDelegate(ImFontConfig* fontConfig);
 }

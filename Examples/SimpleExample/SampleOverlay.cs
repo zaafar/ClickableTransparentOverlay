@@ -1,25 +1,24 @@
-﻿namespace SimpleExample
+﻿using ClickableTransparentOverlay;
+using ImGuiNET;
+
+namespace SimpleExample;
+
+internal class SampleOverlay : Overlay
 {
-    using ClickableTransparentOverlay;
-    using System.Threading.Tasks;
-    using ImGuiNET;
+    private bool wantKeepDemoWindow = true;
 
-    internal class SampleOverlay : Overlay
+    protected override Task PostInitialized()
     {
-        private bool wantKeepDemoWindow = true;
-        protected override Task PostInitialized()
-        {
-            this.VSync = false;
-            return Task.CompletedTask;
-        }
+        this.VSync = false;
+        return Task.CompletedTask;
+    }
 
-        protected override void Render()
+    protected override void Render()
+    {
+        ImGui.ShowDemoWindow(ref wantKeepDemoWindow);
+        if (!this.wantKeepDemoWindow)
         {
-            ImGui.ShowDemoWindow(ref wantKeepDemoWindow);
-            if (!this.wantKeepDemoWindow)
-            {
-                this.Close();
-            }
+            this.Close();
         }
     }
 }

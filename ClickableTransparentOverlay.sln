@@ -11,6 +11,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SingleThreadedOverlayWithCo
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MultiThreadedOverlay", "Examples\MultiThreadedOverlay\MultiThreadedOverlay.csproj", "{468A6C13-9012-4566-9F97-936C9B1C370A}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Examples", "Examples", "{E0E938A3-FB14-43C2-9921-7A9119E6C627}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -36,6 +38,11 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{1C727C51-8721-4952-BF5C-5D7BE26377C9} = {E0E938A3-FB14-43C2-9921-7A9119E6C627}
+		{1EF72F99-43B7-4EF2-BE9D-6EAA84AD4D54} = {E0E938A3-FB14-43C2-9921-7A9119E6C627}
+		{468A6C13-9012-4566-9F97-936C9B1C370A} = {E0E938A3-FB14-43C2-9921-7A9119E6C627}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {030AF221-8720-46BD-B10A-D1BA870D615D}

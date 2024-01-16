@@ -1,13 +1,12 @@
-﻿namespace MultiThreadedOverlay
-{
-    using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
-    class Program
+namespace MultiThreadedOverlay;
+
+class Program
+{
+    static async Task Main()
     {
-        static async Task Main()
-        {
-            using var overlay = new SampleOverlay();
-            await overlay.Run();
-        }
+        using var overlay = new SampleOverlay();
+        await overlay.Run();
     }
 }
