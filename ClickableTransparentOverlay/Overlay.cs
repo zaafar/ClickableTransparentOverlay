@@ -28,6 +28,8 @@
     {
         private readonly string title;
         private readonly Format format;
+        private readonly int initialWindowWidth;
+        private readonly int initialWindowHeight;
 
         private WNDCLASSEX wndClass;
         private Win32Window window;
@@ -88,8 +90,61 @@
         /// <param name="DPIAware">
         /// should the overlay scale with windows scale value or not.
         /// </param>
-        public Overlay(string windowTitle, bool DPIAware)
+        public Overlay(string windowTitle, bool DPIAware) : this(windowTitle, DPIAware, 800, 600)
         {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Overlay"/> class.
+        /// </summary>
+        /// <param name="windowWidth">
+        /// width to use when creating the clickable  transparent overlay window
+        /// </param>
+        /// <param name="windowHeight">
+        /// height to use when creating the clickable transparent overlay window
+        /// </param>
+        public Overlay(int windowWidth, int windowHeight) : this("Overlay", windowWidth, windowHeight)
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Overlay"/> class.
+        /// </summary>
+        /// <param name="windowTitle">
+        /// Title of the window created by the overlay
+        /// </param>
+        /// <param name="windowWidth">
+        /// width to use when creating the clickable  transparent overlay window
+        /// </param>
+        /// <param name="windowHeight">
+        /// height to use when creating the clickable transparent overlay window
+        /// </param>
+        public Overlay(string windowTitle, int windowWidth, int windowHeight) : this(windowTitle, false, windowWidth, windowHeight)
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Overlay"/> class.
+        /// </summary>
+        /// <param name="windowTitle">
+        /// Title of the window created by the overlay
+        /// </param>
+        /// <param name="DPIAware">
+        /// should the overlay scale with windows scale value or not.
+        /// </param>
+        /// <param name="vsync">
+        /// vsync is enabled if true otherwise disabled.
+        /// </param>
+        /// <param name="windowWidth">
+        /// width to use when creating the clickable  transparent overlay window
+        /// </param>
+        /// <param name="windowHeight">
+        /// height to use when creating the clickable transparent overlay window
+        /// </param>
+        public Overlay(string windowTitle, bool DPIAware, int windowWidth, int windowHeight)
+        {
+            this.initialWindowWidth = windowWidth;
+            this.initialWindowHeight = windowHeight;
             this.VSync = true;
             this._disposedValue = false;
             this.overlayIsReady = false;
@@ -536,14 +591,14 @@
 
             this.window = new Win32Window(
                 wndClass.ClassName,
-                800,
-                600,
+                this.initialWindowWidth,
+                this.initialWindowHeight,
                 0,
                 0,
                 this.title,
                 WindowStyles.WS_POPUP,
                 WindowExStyles.WS_EX_ACCEPTFILES | WindowExStyles.WS_EX_TOPMOST);
-            this.renderer = new ImGuiRenderer(device, deviceContext, 800, 600);
+            this.renderer = new ImGuiRenderer(device, deviceContext, this.initialWindowWidth, this.initialWindowHeight);
             this.inputhandler = new ImGuiInputHandler(this.window.Handle);
             this.overlayIsReady = true;
             await this.PostInitialized();

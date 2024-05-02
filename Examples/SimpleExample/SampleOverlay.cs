@@ -6,6 +6,11 @@
 
     internal class SampleOverlay : Overlay
     {
+        public SampleOverlay()
+            : base(3840, 2160)
+        {
+        }
+
         private bool wantKeepDemoWindow = true;
         protected override Task PostInitialized()
         {
