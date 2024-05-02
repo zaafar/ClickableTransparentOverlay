@@ -24,10 +24,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="ImGui.NET" Version="1.90.1.1" />
-    <PackageReference Include="SixLabors.ImageSharp" Version="3.1.2" />
-    <PackageReference Include="Vortice.D3DCompiler" Version="3.3.4" />
-    <PackageReference Include="Vortice.Direct3D11" Version="3.3.4" />
+    <PackageReference Include="ImGui.NET" Version="1.90.5.1" />
+    <PackageReference Include="SixLabors.ImageSharp" Version="3.1.4" />
+    <PackageReference Include="Vortice.D3DCompiler" Version="3.5.0" />
+    <PackageReference Include="Vortice.Direct3D11" Version="3.5.0" />
   </ItemGroup>
 
 </Project>
