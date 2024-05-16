@@ -32,7 +32,12 @@
         private readonly int initialWindowHeight;
 
         private WNDCLASSEX wndClass;
-        private Win32Window window;
+
+        /// <summary>
+        ///  Do not assume this class is initialized.
+        ///  Consider using this variable only in <see cref="PostInitialized"/> or <see cref="Render"/> function.
+        /// </summary>
+        public Win32Window window;
         private ID3D11Device device;
         private ID3D11DeviceContext deviceContext;
         private IDXGISwapChain swapChain;

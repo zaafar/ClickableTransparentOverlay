@@ -4,7 +4,7 @@
     using System;
     using System.Drawing;
 
-    internal sealed class Win32Window : IDisposable
+    public sealed class Win32Window : IDisposable
     {
         public IntPtr Handle;
         public Rectangle Dimensions;
