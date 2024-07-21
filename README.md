@@ -1,5 +1,9 @@
 # Clickable Transparent Overlay
-A library for creating transparent overlay using Win32 API and ImGui.
+CTO is a library for creating transparent overlay using Win32 API and ImGui.
+
+# How to Use
+
+Please see the sample projects ([here](https://github.com/zaafar/ClickableTransparentOverlay/tree/master/Examples)) which demonstrate how to use this library.
 
 # Nuget
 
@@ -20,6 +24,9 @@ follow (if not identical to) the official example in c++ ImGui library
 and [here](https://github.com/ocornut/imgui/blob/master/backends/imgui_impl_win32.cpp "Last changelog looked was 2023-10-05")).
 This allows us to easily update this library if something changes over there.
 
+# Feedback
+
+Please open issue in github repo for feedback.
 
 # To Trigger a release push a tag as shown below
 
