@@ -2,11 +2,9 @@
 {
     using System;
     using System.Diagnostics;
-    using System.Drawing;
     using System.IO;
     using System.Numerics;
     using System.Threading;
-    using System.Threading.Tasks;
     using ClickableTransparentOverlay;
     using ClickableTransparentOverlay.Win32;
     using ImGuiNET;
@@ -19,7 +17,7 @@
         private volatile State state;
         private readonly Thread logicThread;
 
-        public SampleOverlay()
+        public SampleOverlay() : base(3840, 2160)
         {
             state = new State();
             logicThread = new Thread(() =>
