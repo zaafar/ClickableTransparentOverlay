@@ -7,7 +7,7 @@ https://www.nuget.org/packages/ClickableTransparentOverlay
 
 # Dependencies
 
-* [.NET 7](https://dotnet.microsoft.com/en-us/download/dotnet/7.0)
+* [.NET 8](https://dotnet.microsoft.com/en-us/download/dotnet/8.0)
 * [Vortice.Windows](https://github.com/amerkoleci/Vortice.Windows)
 * [ImGui.NET](https://github.com/mellinoe/ImGui.NET/)
 * [ImageSharp](https://github.com/SixLabors/ImageSharp)
