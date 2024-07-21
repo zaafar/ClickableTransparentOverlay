@@ -29,3 +29,14 @@ jobs:
       - name: Publish to nuget.org
         if: startsWith(github.ref, 'refs/tags/')
         run: dotnet nuget push ClickableTransparentOverlay\bin\Release\* -s https://api.nuget.org/v3/index.json --api-key ${{secrets.NUGET_API_KEY}}
+
+      - name: Build Demo for Github
+        run: |
+          dotnet build -c Release Examples/MultiThreadedOverlay
+          tar -a -v -c -f demo.zip Examples\MultiThreadedOverlay\bin\Release
+
+      - name: Upload Demo on Github
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: demo.zip
