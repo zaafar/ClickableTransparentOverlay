@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net7.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>disable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <NoWin32Manifest>true</NoWin32Manifest>
@@ -24,7 +24,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="ImGui.NET" Version="1.90.6.1" />
+    <PackageReference Include="ImGui.NET" Version="1.90.9.1" />
     <PackageReference Include="SixLabors.ImageSharp" Version="3.1.4" />
     <PackageReference Include="Vortice.D3DCompiler" Version="3.5.0" />
     <PackageReference Include="Vortice.Direct3D11" Version="3.5.0" />
