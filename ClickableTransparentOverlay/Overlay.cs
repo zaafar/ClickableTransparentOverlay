@@ -52,6 +52,7 @@
         private Thread renderThread;
         private volatile CancellationTokenSource cancellationTokenSource;
         private volatile bool overlayIsReady;
+        private int fpslimit;
 
         private Dictionary<string, (IntPtr Handle, uint Width, uint Height)> loadedTexturesPtrs;
 
@@ -150,7 +151,8 @@
         {
             this.initialWindowWidth = windowWidth;
             this.initialWindowHeight = windowHeight;
-            this.VSync = true;
+            this.VSync = false;
+            this.FPSLimit = 60;
             this._disposedValue = false;
             this.overlayIsReady = false;
             this.title = windowTitle;
@@ -311,8 +313,37 @@
 
         /// <summary>
         /// Enable or disable the vsync on the overlay.
+        /// You can either use the <see cref="FPSLimit"/> or <see cref="VSync"/>.
+        /// VSync will be given the preference if both are set.
         /// </summary>
         public bool VSync;
+
+        /// <summary>
+        /// Gets or sets the FPS Limits of the overlay.
+        /// You can either use the <see cref="FPSLimit"/> or <see cref="VSync"/>.
+        /// VSync will be given the preference if both are set.
+        /// </summary>
+        public int FPSLimit
+        {
+            get => this.fpslimit;
+            set
+            {
+                if (value == 0)
+                {
+                    this.fpslimit = value;
+                    _ = Winmm.MM_EndPeriod(1);
+                }
+                else if (value > 0)
+                {
+                    this.fpslimit = value;
+                    _ = Winmm.MM_BeginPeriod(1);
+                }
+                else
+                {
+                    // ignore negative values.
+                }
+            }
+        }
 
         /// <summary>
         /// Gets or sets the position of the overlay window.
@@ -444,6 +475,11 @@
 
             if (disposing)
             {
+                if (this.FPSLimit > 0)
+                {
+                    Winmm.MM_EndPeriod(1);
+                }
+
                 this.renderThread?.Join();
                 foreach(var key in this.loadedTexturesPtrs.Keys.ToArray())
                 {
@@ -491,21 +527,34 @@
         private void RunInfiniteLoop(CancellationToken token)
         {
             var stopwatch = Stopwatch.StartNew();
-            float deltaTime = 0f;
+            var currentTimeSec = 0f;
             var clearColor = new Color4(0.0f);
+            var delayMs = 0f;
+            var sleepTimeMs = 0;
             while (!token.IsCancellationRequested)
             {
-                deltaTime = stopwatch.ElapsedTicks / (float)Stopwatch.Frequency;
+                currentTimeSec = stopwatch.ElapsedTicks / (float)Stopwatch.Frequency;
                 stopwatch.Restart();
                 this.window.PumpEvents();
                 Utils.SetOverlayClickable(this.window.Handle, this.inputhandler.Update());
-                this.renderer.Update(deltaTime, () => { Render(); });
+                this.renderer.Update(currentTimeSec, () => { Render(); });
                 this.deviceContext.OMSetRenderTargets(renderView);
                 this.deviceContext.ClearRenderTargetView(renderView, clearColor);
                 this.renderer.Render();
                 if (VSync)
                 {
                     this.swapChain.Present(1, PresentFlags.None); // Present with vsync
+                }
+                else if (this.FPSLimit > 0)
+                {
+                    this.swapChain.Present(0, PresentFlags.None);
+                    delayMs = 1000f / this.FPSLimit;
+                    currentTimeSec = stopwatch.ElapsedTicks / (float)Stopwatch.Frequency;
+                    sleepTimeMs = (int)(delayMs - (currentTimeSec * 1000));
+                    if (sleepTimeMs > 0)
+                    {
+                        Thread.Sleep(sleepTimeMs);
+                    }
                 }
                 else
                 {
