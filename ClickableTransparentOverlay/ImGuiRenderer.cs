@@ -54,11 +54,6 @@
             this.CreateDeviceObjects();
         }
 
-        public void Start()
-        {
-            ImGui.NewFrame();
-        }
-
         public void Update(float deltaTime, Action DoRender)
         {
             var io = ImGui.GetIO();

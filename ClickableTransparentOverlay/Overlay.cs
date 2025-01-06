@@ -180,7 +180,6 @@
             {
                 await this.InitializeResources();
                 this.ReplaceFontIfRequired();
-                this.renderer.Start();
                 this.RunInfiniteLoop(this.cancellationTokenSource.Token);
             });
 

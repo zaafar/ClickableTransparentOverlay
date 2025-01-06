@@ -29,9 +29,9 @@
                 {
                     this.FPSLimit = this.FPSHelper;
                 }
-
-                ImGui.End();
             }
+
+            ImGui.End();
 
             if (!this.wantKeepDemoWindow)
             {
