@@ -1049,6 +1049,13 @@
     internal static class User32
     {
         public const string LibraryName = "user32.dll";
+        
+        /// <summary>
+        /// Does not activate the window, and does not discard the mouse message.
+        /// </summary>
+        public const int MA_NOACTIVATE = 3;
+
+        public const int WM_MOUSEACTIVATE = 33;
 
         [DllImport(LibraryName, CharSet = CharSet.Unicode)]
         public static extern ushort RegisterClassEx([In] ref WNDCLASSEX lpwcx);
@@ -1161,5 +1168,104 @@
 
         [DllImport(LibraryName, ExactSpelling = true)]
         public static extern int GetSystemMetrics(int smIndex);
+
+        private const int GWL_EXSTYLE = -20;
+        private const uint WS_EX_TOOLWINDOW = 0x00000080;
+        private const uint WS_EX_APPWINDOW = 0x00040000;
+        private const uint WS_EX_NOACTIVATE = 0x08000000;
+        private const uint WS_EX_TRANSPARENT = 0x00000020;
+        private const uint WS_EX_LAYERED = 0x00080000;
+        
+        /// <summary>
+        /// Sets whether the specified window allows mouse click-through (transparent to mouse events).
+        /// </summary>
+        /// <param name="hwnd">The handle of the window.</param>
+        /// <param name="clickThrough">True to make the window ignore mouse input; false to make it clickable.</param>
+        public static void SetWindowClickThrough(IntPtr hwnd, bool clickThrough)
+        {
+            if (hwnd == IntPtr.Zero)
+            {
+                throw new ArgumentException("Invalid window handle.");
+            }
+
+            uint exStyle = GetWindowLongPtr(hwnd, GWL_EXSTYLE);
+            uint newStyle;
+
+            if (clickThrough)
+            {
+                newStyle = exStyle | WS_EX_LAYERED | WS_EX_TRANSPARENT;
+            }
+            else
+            {
+                newStyle = exStyle & ~WS_EX_TRANSPARENT;
+            }
+
+            if (newStyle != exStyle)
+            {
+                SetWindowLongPtr(hwnd, GWL_EXSTYLE, newStyle);
+            }
+        }
+        
+        /// <summary>
+        /// Sets whether the specified window is visible in the taskbar.
+        /// </summary>
+        /// <param name="hwnd">The handle of the window.</param>
+        /// <param name="visible">True to show in the taskbar, false to hide.</param>
+        public static void SetTaskbarVisibility(IntPtr hwnd, bool visible)
+        {
+            if (hwnd == IntPtr.Zero)
+            {
+                throw new ArgumentException("Invalid window handle.");
+            }
+
+            uint stylePtr = GetWindowLongPtr(hwnd, GWL_EXSTYLE);
+            uint exStyle = stylePtr;
+            uint newStyle;
+
+            if (visible)
+            {
+                newStyle = (exStyle & ~WS_EX_TOOLWINDOW) | WS_EX_APPWINDOW;
+            }
+            else
+            {
+                newStyle = (exStyle & ~WS_EX_APPWINDOW) | WS_EX_TOOLWINDOW;
+            }
+
+            if (newStyle != exStyle)
+            {
+                SetWindowLongPtr(hwnd, GWL_EXSTYLE, newStyle);
+            }
+        }
+
+        /// <summary>
+        /// Sets whether the specified window is allowed to activate (gain focus) when clicked.
+        /// </summary>
+        /// <param name="hwnd">The handle of the window.</param>
+        /// <param name="allowActivation">True to allow activation (default window behavior), false to suppress it.</param>
+        public static void SetWindowActivationEnabled(IntPtr hwnd, bool allowActivation)
+        {
+            if (hwnd == IntPtr.Zero)
+            {
+                throw new ArgumentException("Invalid window handle.");
+            }
+
+            uint stylePtr = GetWindowLongPtr(hwnd, GWL_EXSTYLE);
+            uint exStyle = stylePtr;
+            uint newStyle;
+
+            if (allowActivation)
+            {
+                newStyle = exStyle & ~WS_EX_NOACTIVATE;
+            }
+            else
+            {
+                newStyle = exStyle | WS_EX_NOACTIVATE;
+            }
+
+            if (newStyle != exStyle)
+            {
+                SetWindowLongPtr(hwnd, GWL_EXSTYLE, newStyle);
+            }
+        }
     }
 }

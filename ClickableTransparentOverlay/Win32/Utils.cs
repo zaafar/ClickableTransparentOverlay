@@ -8,14 +8,6 @@
         public static int Loword(int number) => number & 0x0000FFFF;
         public static int Hiword(int number) => number >> 16;
 
-        /// <summary>
-        /// Gets a value indicating whether the overlay is clickable or not.
-        /// </summary>
-        internal static bool IsClickable { get; private set; } = true;
-
-        private static WindowExStyles Clickable = 0;
-        private static WindowExStyles NotClickable = 0;
-
         private static readonly Stopwatch sw = Stopwatch.StartNew();
         private static readonly long[] nVirtKeyTimeouts = new long[256]; // Total VirtKeys are 256.
 
@@ -68,11 +60,8 @@
         /// </param>
         internal static void InitTransparency(IntPtr handle)
         {
-            Clickable = (WindowExStyles)User32.GetWindowLong(handle, (int)WindowLongParam.GWL_EXSTYLE);
-            NotClickable = Clickable | WindowExStyles.WS_EX_LAYERED | WindowExStyles.WS_EX_TRANSPARENT;
             var margins = new Dwmapi.Margins(-1);
             _ = Dwmapi.DwmExtendFrameIntoClientArea(handle, ref margins);
-            SetOverlayClickable(handle, true);
         }
 
         /// <summary>
@@ -81,20 +70,30 @@
         /// </summary>
         /// <param name="handle">Veldrid window handle in IntPtr format.</param>
         /// <param name="WantClickable">Set to true if you want to make the window clickable otherwise false.</param>
-        internal static void SetOverlayClickable(IntPtr handle, bool WantClickable)
+        internal static void SetOverlayClickable(IntPtr handle, bool WantClickable, ref bool IsClickable)
         {
             if (IsClickable ^ WantClickable)
             {
-                if (WantClickable)
-                {
-                    User32.SetWindowLong(handle, (int)WindowLongParam.GWL_EXSTYLE, (uint)Clickable);
-                }
-                else
-                {
-                    User32.SetWindowLong(handle, (int)WindowLongParam.GWL_EXSTYLE, (uint)NotClickable);
-                }
-
+                User32.SetWindowClickThrough(handle, !WantClickable);
                 IsClickable = WantClickable;
+            }
+        }
+        
+        internal static void SetShowInTaskbar(IntPtr handle, bool WantShowInTaskbar, ref bool ActualShowInTaskbar)
+        {
+            if (ActualShowInTaskbar ^ WantShowInTaskbar)
+            {
+                User32.SetTaskbarVisibility(handle, WantShowInTaskbar);
+                ActualShowInTaskbar = WantShowInTaskbar;
+            }
+        }
+        
+        internal static void SetNoActivate(IntPtr handle, bool WantNoActivate, ref bool ActualNoActivate)
+        {
+            if (ActualNoActivate ^ WantNoActivate)
+            {
+                User32.SetWindowActivationEnabled(handle, !WantNoActivate);
+                ActualNoActivate = WantNoActivate;
             }
         }
     }

@@ -30,6 +30,8 @@
         private readonly Format format;
         private readonly int initialWindowWidth;
         private readonly int initialWindowHeight;
+        private readonly Dictionary<string, (IntPtr Handle, uint Width, uint Height)> loadedTexturesPtrs;
+        private readonly ConcurrentQueue<FontHelper.FontLoadDelegate> fontUpdates;
 
         private WNDCLASSEX wndClass;
 
@@ -42,21 +44,20 @@
         private ID3D11DeviceContext deviceContext;
         private IDXGISwapChain swapChain;
         private ID3D11Texture2D backBuffer;
-        private ID3D11RenderTargetView renderView;
+        private ID3D11RenderTargetView? renderView;
 
         private ImGuiRenderer renderer;
         private ImGuiInputHandler inputhandler;
 
-        private bool _disposedValue;
+        private bool disposedValue;
         private IntPtr selfPointer;
         private Thread renderThread;
         private volatile CancellationTokenSource cancellationTokenSource;
         private volatile bool overlayIsReady;
         private int fpslimit;
-
-        private Dictionary<string, (IntPtr Handle, uint Width, uint Height)> loadedTexturesPtrs;
-
-        private readonly ConcurrentQueue<FontHelper.FontLoadDelegate> fontUpdates;
+        private bool isClickable;
+        private bool noActivate;
+        private bool showInTaskbar = true; //that is the default state of the window
 
         #region Constructors
 
@@ -138,9 +139,6 @@
         /// <param name="DPIAware">
         /// should the overlay scale with windows scale value or not.
         /// </param>
-        /// <param name="vsync">
-        /// vsync is enabled if true otherwise disabled.
-        /// </param>
         /// <param name="windowWidth">
         /// width to use when creating the clickable  transparent overlay window
         /// </param>
@@ -153,7 +151,7 @@
             this.initialWindowHeight = windowHeight;
             this.VSync = false;
             this.FPSLimit = 60;
-            this._disposedValue = false;
+            this.disposedValue = false;
             this.overlayIsReady = false;
             this.title = windowTitle;
             this.cancellationTokenSource = new();
@@ -165,6 +163,21 @@
                 User32.SetProcessDPIAware();
             }
         }
+        
+        /// <summary>
+        /// Gets or sets a value indicating whether the window should be click-through (i.e., not interactable).
+        /// </summary>
+        public bool IsClickable { get; set; } = true;
+        
+        /// <summary>
+        /// Gets or sets a value indicating whether the window should appear in the taskbar.
+        /// </summary>
+        public bool ShowInTaskbar { get; set; } = true;
+        
+        /// <summary>
+        /// Gets or sets a value indicating whether the window should NOT be activated when clicked
+        /// </summary>
+        public bool NoActivate { get; set; }
 
         #endregion
 
@@ -467,7 +480,7 @@
 
         protected virtual void Dispose(bool disposing)
         {
-            if (this._disposedValue)
+            if (this.disposedValue)
             {
                 return;
             }
@@ -506,7 +519,7 @@
                 this.selfPointer = IntPtr.Zero;
             }
 
-            this._disposedValue = true;
+            this.disposedValue = true;
         }
 
         /// <summary>
@@ -535,7 +548,9 @@
                 currentTimeSec = stopwatch.ElapsedTicks / (float)Stopwatch.Frequency;
                 stopwatch.Restart();
                 this.window.PumpEvents();
-                Utils.SetOverlayClickable(this.window.Handle, this.inputhandler.Update());
+                Utils.SetOverlayClickable(this.window.Handle, this.inputhandler.Update(), ref isClickable);
+                Utils.SetShowInTaskbar(this.window.Handle, ShowInTaskbar, ref showInTaskbar);
+                Utils.SetNoActivate(this.window.Handle, NoActivate, ref noActivate);
                 this.renderer.Update(currentTimeSec, () => { Render(); });
                 this.deviceContext.OMSetRenderTargets(renderView);
                 this.deviceContext.ClearRenderTargetView(renderView, clearColor);
@@ -657,6 +672,7 @@
             await this.PostInitialized();
             User32.ShowWindow(this.window.Handle, ShowWindowCommand.Show);
             Utils.InitTransparency(this.window.Handle);
+            Utils.SetOverlayClickable(this.window.Handle, true, ref isClickable);
         }
 
         private bool ProcessMessage(WindowMessage msg, UIntPtr wParam, IntPtr lParam)
@@ -693,6 +709,11 @@
         {
             if (this.overlayIsReady)
             {
+                if (NoActivate && msg == User32.WM_MOUSEACTIVATE)
+                {
+                    return new IntPtr(User32.MA_NOACTIVATE);
+                }
+                
                 if (this.inputhandler.ProcessMessage((WindowMessage)msg, wParam, lParam) ||
                     this.ProcessMessage((WindowMessage)msg, wParam, lParam))
                 {
