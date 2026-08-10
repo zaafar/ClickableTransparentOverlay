@@ -15,7 +15,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\..\ClickableTransparentOverlay\ClickableTransparentOverlay.csproj" />
+		<ProjectReference Include="..\..\ClickableTransparentOverlay\ClickableTransparentOverlay.Hexa.csproj" />
 	</ItemGroup>
 
 </Project>
