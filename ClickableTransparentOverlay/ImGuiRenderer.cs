@@ -196,6 +196,8 @@
             inputLayout?.Release();
             vertexShader?.Release();
             vertexShaderBlob?.Release();
+            device.Release();
+            deviceContext.Release();
         }
 
         public void Resize(int width, int height)
