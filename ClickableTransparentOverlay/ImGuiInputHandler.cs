@@ -1,18 +1,13 @@
 ﻿namespace ClickableTransparentOverlay
 {
-    using ImGuiNET;
+    using Hexa.NET.ImGui;
     using System;
     using Win32;
 
-    internal class ImGuiInputHandler
+    internal class ImGuiInputHandler(IntPtr hwnd)
     {
-        readonly IntPtr hwnd;
+        readonly IntPtr hwnd = hwnd;
         ImGuiMouseCursor lastCursor;
-
-        public ImGuiInputHandler(IntPtr hwnd)
-        {
-            this.hwnd = hwnd;
-        }
 
         public bool Update()
         {
@@ -43,7 +38,7 @@
 
         public bool ProcessMessage(WindowMessage msg, UIntPtr wParam, IntPtr lParam)
         {
-            if (ImGui.GetCurrentContext() == IntPtr.Zero)
+            if (ImGui.GetCurrentContext() == ImGuiContextPtr.Null)
                 return false;
 
             var io = ImGui.GetIO();
@@ -142,10 +137,10 @@
                     case ImGuiMouseCursor.Arrow: cursor = SystemCursor.IDC_ARROW; break;
                     case ImGuiMouseCursor.TextInput: cursor = SystemCursor.IDC_IBEAM; break;
                     case ImGuiMouseCursor.ResizeAll: cursor = SystemCursor.IDC_SIZEALL; break;
-                    case ImGuiMouseCursor.ResizeEW: cursor = SystemCursor.IDC_SIZEWE; break;
-                    case ImGuiMouseCursor.ResizeNS: cursor = SystemCursor.IDC_SIZENS; break;
-                    case ImGuiMouseCursor.ResizeNESW: cursor = SystemCursor.IDC_SIZENESW; break;
-                    case ImGuiMouseCursor.ResizeNWSE: cursor = SystemCursor.IDC_SIZENWSE; break;
+                    case ImGuiMouseCursor.ResizeEw: cursor = SystemCursor.IDC_SIZEWE; break;
+                    case ImGuiMouseCursor.ResizeNs: cursor = SystemCursor.IDC_SIZENS; break;
+                    case ImGuiMouseCursor.ResizeNesw: cursor = SystemCursor.IDC_SIZENESW; break;
+                    case ImGuiMouseCursor.ResizeNwse: cursor = SystemCursor.IDC_SIZENWSE; break;
                     case ImGuiMouseCursor.Hand: cursor = SystemCursor.IDC_HAND; break;
                     case ImGuiMouseCursor.NotAllowed: cursor = SystemCursor.IDC_NO; break;
                 }
@@ -169,7 +164,7 @@
                 >= VK.F1 and <= VK.F24 => KeyToImGuiKeyShortcut(key, VK.F1, ImGuiKey.F1),
                 >= VK.NUMPAD0 and <= VK.NUMPAD9 => KeyToImGuiKeyShortcut(key, VK.NUMPAD0, ImGuiKey.Keypad0),
                 >= VK.KEY_A and <= VK.KEY_Z => KeyToImGuiKeyShortcut(key, VK.KEY_A, ImGuiKey.A),
-                >= VK.KEY_0 and <= VK.KEY_9 => KeyToImGuiKeyShortcut(key, VK.KEY_0, ImGuiKey._0),
+                >= VK.KEY_0 and <= VK.KEY_9 => KeyToImGuiKeyShortcut(key, VK.KEY_0, ImGuiKey.Key0),
                 VK.TAB => ImGuiKey.Tab,
                 VK.LEFT => ImGuiKey.LeftArrow,
                 VK.RIGHT => ImGuiKey.RightArrow,

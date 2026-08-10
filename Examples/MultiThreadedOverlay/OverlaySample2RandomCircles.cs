@@ -1,8 +1,8 @@
 ﻿namespace MultiThreadedOverlay
 {
+    using Hexa.NET.ImGui;
     using System;
     using System.Numerics;
-    using ImGuiNET;
 
     public class OverlaySample2RandomCircles
     {
@@ -16,7 +16,7 @@
             {
                 return;
             }
-            
+
             for (int i = 0; i < circleCenters.Length; i++)
             {
                 circleCenters[i].X = randomGen.Next(0, 2560);
@@ -43,9 +43,9 @@
             var windowPtr = ImGui.GetWindowDrawList();
             for (int i = 0; i < circleCenters.Length; i++)
             {
-                windowPtr.AddCircleFilled(circleCenters[i], 10.0f, (uint) (((255 << 24) | (00 << 16) | (00 << 8) | 255) & 0xffffffffL));
+                windowPtr.AddCircleFilled(circleCenters[i], 10.0f, (uint)(((255 << 24) | (00 << 16) | (00 << 8) | 255) & 0xffffffffL));
             }
-            
+
             ImGui.End();
         }
     }

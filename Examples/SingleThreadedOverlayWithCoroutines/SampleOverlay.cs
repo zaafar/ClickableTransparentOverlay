@@ -1,16 +1,15 @@
 ﻿namespace SingleThreadedOverlayWithCoroutines
 {
-    using System.Collections.Generic;
     using ClickableTransparentOverlay;
     using Coroutine;
-    using ImGuiNET;
-    using SixLabors.ImageSharp.PixelFormats;
+    using Hexa.NET.ImGui;
     using SixLabors.ImageSharp;
-    using System.Threading.Tasks;
-    using System.Numerics;
+    using SixLabors.ImageSharp.PixelFormats;
     using System;
-    using System.Drawing;
+    using System.Collections.Generic;
     using System.IO;
+    using System.Numerics;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Render Loop and Logic Loop are synchronized.
@@ -18,7 +17,12 @@
     internal class SampleOverlay : Overlay
     {
         private ImFontPtr? font2 = null;
-        private readonly ushort[] custom1 = new ushort[3] { 0x0020, 0xFFFF, 0x00 };
+        private readonly ushort[] custom1 = [0x0020, 0xFFFF, 0x00];
+        private static readonly ushort[] RangesChineseSimplifiedCommon =
+        [
+            0x0020, 0x00FF, 0x2000, 0x206F, 0x3000, 0x30FF, 0x31F0, 0x31FF,
+            0xFF00, 0xFFEF, 0x4E00, 0x9FAF, 0x00
+        ];
         private int fontSize = 13;
         private int data;
         private string data2;
@@ -108,7 +112,7 @@
             ImGui.Text($"Coroutine Name: {myRoutine2.Name}");
             ImGui.Text($"Total Executions: {myRoutine2.MoveNextCount}");
             ImGui.Text($"Total Execution Time: {myRoutine2.TotalMoveNextTime.TotalMilliseconds}");
-            ImGui.Text($"Avg Execution Time: {myRoutine2.TotalMoveNextTime.TotalMilliseconds/ myRoutine2.MoveNextCount}");
+            ImGui.Text($"Avg Execution Time: {myRoutine2.TotalMoveNextTime.TotalMilliseconds / myRoutine2.MoveNextCount}");
             ImGui.DragInt("Font Size", ref fontSize, 0.1f, 13, 40);
 
             if (ImGui.Button("Change Font (更改字体)"))
@@ -131,7 +135,7 @@
 
             if (font2 != null)
             {
-                ImGui.PushFont(font2.Value);
+                ImGui.PushFont(font2.Value, font2.Value.LegacySize);
             }
 
             ImGui.ShowFontSelector("foo");
@@ -149,7 +153,7 @@
                     {
                         if (File.Exists(@"C:\Windows\Fonts\msyh.ttc"))
                         {
-                            font2 = io.Fonts.AddFontFromFileTTF(@"C:\Windows\Fonts\msyh.ttc", fontSize * 2, config, new IntPtr(p));
+                            font2 = io.Fonts.AddFontFromFileTTF(@"C:\Windows\Fonts\msyh.ttc", fontSize * 2, config, (uint*)p);
                         }
                     }
                 });
@@ -166,16 +170,19 @@
                 this.ReplaceFont(config =>
                 {
                     var io = ImGui.GetIO();
-                    io.Fonts.AddFontFromFileTTF(@"C:\Windows\Fonts\msyh.ttc", fontSize, config, io.Fonts.GetGlyphRangesChineseSimplifiedCommon());
-                    config->MergeMode = 1;
-                    config->OversampleH = 1;
-                    config->OversampleV = 1;
-                    config->PixelSnapH = 1;
+                    fixed (ushort* p = &RangesChineseSimplifiedCommon[0])
+                    {
+                        io.Fonts.AddFontFromFileTTF(@"C:\Windows\Fonts\msyh.ttc", fontSize, config, (uint*)p);
+                    }
+                    config.MergeMode = true;
+                    config.OversampleH = 1;
+                    config.OversampleV = 1;
+                    config.PixelSnapH = true;
 
                     var custom2 = new ushort[] { 0xe005, 0xf8ff, 0x00 };
                     fixed (ushort* p = &custom2[0])
                     {
-                        io.Fonts.AddFontFromFileTTF("fa-brands-400.ttf", fontSize, config, new IntPtr(p));
+                        io.Fonts.AddFontFromFileTTF("fa-brands-400.ttf", fontSize, config, (uint*)p);
                     }
                 });
             }
@@ -197,7 +204,7 @@
             }
 
             this.AddOrGetImagePointer("image", image, true, out var handle);
-            ImGui.GetBackgroundDrawList().AddImage(handle, new Vector2(200f), new Vector2(300f));
+            ImGui.GetBackgroundDrawList().AddImage(new ImTextureRef(default, handle), new Vector2(200f), new Vector2(300f));
         }
     }
 }

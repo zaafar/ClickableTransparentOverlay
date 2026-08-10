@@ -1,13 +1,13 @@
 ﻿namespace MultiThreadedOverlay
 {
+    using ClickableTransparentOverlay;
+    using ClickableTransparentOverlay.Win32;
+    using Hexa.NET.ImGui;
     using System;
     using System.Diagnostics;
     using System.IO;
     using System.Numerics;
     using System.Threading;
-    using ClickableTransparentOverlay;
-    using ClickableTransparentOverlay.Win32;
-    using ImGuiNET;
 
     /// <summary>
     /// Render Loop and Logic Loop are independent from each other. 
@@ -19,11 +19,11 @@
 
         public SampleOverlay() : base(3840, 2160)
         {
-            state = new State();
+            state = new();
             logicThread = new Thread(() =>
             {
                 var lastRunTickStamp = state.Watch.ElapsedTicks;
-                
+
                 while (state.IsRunning)
                 {
                     var currentRunTickStamp = state.Watch.ElapsedTicks;
@@ -32,7 +32,7 @@
                     lastRunTickStamp = currentRunTickStamp;
                 }
             });
-            
+
             logicThread.Start();
         }
 
@@ -77,14 +77,14 @@
 
                 return;
             }
-            
+
             state.RenderFramesCounter.Increment();
-            
+
             if (Utils.IsKeyPressedAndNotTimeout(VK.F12)) //F12.
             {
                 state.ShowClickableMenu = !state.ShowClickableMenu;
             }
-            
+
             if (state.ShowImGuiDemo)
             {
                 ImGui.ShowDemoWindow(ref state.ShowImGuiDemo);
@@ -183,7 +183,10 @@
                     out IntPtr imgPtr,
                     out uint w,
                     out uint h);
-                ImGui.Image(imgPtr, new Vector2(w, h));
+                unsafe
+                {
+                    ImGui.Image(new ImTextureRef(default, imgPtr), new Vector2(w, h));
+                }
             }
             else
             {
@@ -215,7 +218,7 @@
             ImGui.Text($"Render Delta (seconds): {ImGui.GetIO().DeltaTime:F4}");
             ImGui.Text($"Render FPS: {ImGui.GetIO().Framerate:F1}");
             ImGui.Text($"Total Logic Frames: {state.LogicTicksCounter.Count}");
-            ImGui.Text($"Logic Delta (seconds): {state.LogicalDelta/Stopwatch.Frequency:F4}");
+            ImGui.Text($"Logic Delta (seconds): {state.LogicalDelta / Stopwatch.Frequency:F4}");
             ImGui.End();
         }
     }

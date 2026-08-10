@@ -1,15 +1,18 @@
 ﻿namespace ClickableTransparentOverlay
 {
     using ClickableTransparentOverlay.Win32;
+    using Hexa.NET.ImGui;
     using SixLabors.ImageSharp;
-    using SixLabors.ImageSharp.PixelFormats;
     using SixLabors.ImageSharp.Formats;
+    using SixLabors.ImageSharp.PixelFormats;
     using System;
+    using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.IO;
     using System.Linq;
     using System.Runtime.CompilerServices;
+    using System.Runtime.InteropServices;
     using System.Threading;
     using System.Threading.Tasks;
     using Vortice.Direct3D;
@@ -18,8 +21,6 @@
     using Vortice.Mathematics;
     using Point = System.Drawing.Point;
     using Size = System.Drawing.Size;
-    using ImGuiNET;
-    using System.Collections.Concurrent;
 
     /// <summary>
     /// A class to create clickable transparent overlay on windows machine.
@@ -57,7 +58,13 @@
         private Dictionary<string, (IntPtr Handle, uint Width, uint Height)> loadedTexturesPtrs;
 
         private readonly ConcurrentQueue<FontHelper.FontLoadDelegate> fontUpdates;
-
+        private static readonly ushort[] RangesCyrillic = [0x0020, 0x00FF, 0x0400, 0x052F, 0x2DE0, 0x2DFF, 0xA640, 0xA69F, 0];
+        private static readonly ushort[] RangesChineseSimplifiedCommon = [0x0020, 0x00FF, 0x2000, 0x206F, 0x3000, 0x303F, 0x3040, 0x309F, 0x30A0, 0x30FF, 0x31F0, 0x31FF, 0xFF00, 0xFFEF, 0x4E00, 0x9FAF, 0];
+        private static readonly ushort[] RangesChineseFull = [0x0020, 0x00FF, 0x2000, 0x206F, 0x3000, 0x303F, 0x3040, 0x309F, 0x30A0, 0x30FF, 0x31F0, 0x31FF, 0xFF00, 0xFFEF, 0x4E00, 0x9FAF, 0];
+        private static readonly ushort[] RangesJapanese = [0x0020, 0x00FF, 0x3000, 0x303F, 0x3040, 0x309F, 0x30A0, 0x30FF, 0xFF00, 0xFFEF, 0x4E00, 0x9FAF, 0];
+        private static readonly ushort[] RangesKorean = [0x0020, 0x00FF, 0x3131, 0x3163, 0xAC00, 0xD7A3, 0];
+        private static readonly ushort[] RangesThai = [0x0020, 0x00FF, 0x2010, 0x205E, 0x0E00, 0x0E7F, 0];
+        private static readonly ushort[] RangesVietnamese = [0x0020, 0x00FF, 0x0102, 0x0103, 0x0110, 0x0111, 0x0128, 0x0129, 0x0168, 0x0169, 0x01A0, 0x01A1, 0x01AF, 0x01B0, 0x1EA0, 0x1EF9, 0x0300, 0x0301, 0];
         private const int SM_CMONITORS = 0x50;
         #region Constructors
 
@@ -230,28 +237,44 @@
         public unsafe bool ReplaceFont(string pathName, int size, FontGlyphRangeType language)
         {
             if (!File.Exists(pathName))
-            {
                 return false;
-            }
 
             this.fontUpdates.Enqueue(config =>
             {
                 var io = ImGui.GetIO();
-                var glyphRange = language switch
+
+                ushort[]? glyphRange = language switch
                 {
-                    FontGlyphRangeType.English => io.Fonts.GetGlyphRangesDefault(),
-                    FontGlyphRangeType.ChineseSimplifiedCommon => io.Fonts.GetGlyphRangesChineseSimplifiedCommon(),
-                    FontGlyphRangeType.ChineseFull => io.Fonts.GetGlyphRangesChineseFull(),
-                    FontGlyphRangeType.Japanese => io.Fonts.GetGlyphRangesJapanese(),
-                    FontGlyphRangeType.Korean => io.Fonts.GetGlyphRangesKorean(),
-                    FontGlyphRangeType.Thai => io.Fonts.GetGlyphRangesThai(),
-                    FontGlyphRangeType.Vietnamese => io.Fonts.GetGlyphRangesVietnamese(),
-                    FontGlyphRangeType.Cyrillic => io.Fonts.GetGlyphRangesCyrillic(),
+                    FontGlyphRangeType.English => null,
+                    FontGlyphRangeType.Cyrillic => RangesCyrillic,
+                    FontGlyphRangeType.ChineseSimplifiedCommon => RangesChineseSimplifiedCommon,
+                    FontGlyphRangeType.ChineseFull => RangesChineseFull,
+                    FontGlyphRangeType.Japanese => RangesJapanese,
+                    FontGlyphRangeType.Korean => RangesKorean,
+                    FontGlyphRangeType.Thai => RangesThai,
+                    FontGlyphRangeType.Vietnamese => RangesVietnamese,
                     _ => throw new Exception($"Font Glyph Range (${language}) is not supported.")
                 };
 
-                io.Fonts.AddFontFromFileTTF(pathName, size, config, glyphRange);
-                ImGuiNative.igGetIO()->FontDefault = null;
+                if (glyphRange != null)
+                {
+                    var handle = GCHandle.Alloc(glyphRange, GCHandleType.Pinned);
+                    try
+                    {
+                        var ptr = (ushort*)handle.AddrOfPinnedObject();
+                        io.Fonts.AddFontFromFileTTF(pathName, size, config, (uint*)ptr);
+                    }
+                    finally
+                    {
+                        handle.Free();
+                    }
+                }
+                else
+                {
+                    io.Fonts.AddFontFromFileTTF(pathName, size, config, null);
+                }
+
+                ImGui.GetIO().FontDefault = null;
             });
 
             return true;
@@ -276,8 +299,8 @@
                 var io = ImGui.GetIO();
                 fixed (ushort* p = &glyphRange[0])
                 {
-                    io.Fonts.AddFontFromFileTTF(pathName, size, config, new IntPtr(p));
-                    ImGuiNative.igGetIO()->FontDefault = null;
+                    io.Fonts.AddFontFromFileTTF(pathName, size, config, (uint*)p);
+                    ImGui.GetIO().FontDefault = null;
                 }
             });
 
@@ -294,7 +317,7 @@
             {
                 var io = ImGui.GetIO();
                 io.Fonts.AddFontDefault(config);
-                ImGuiNative.igGetIO()->FontDefault = null;
+                ImGui.GetIO().FontDefault = null;
             });
 
             return true;
@@ -307,7 +330,7 @@
         public unsafe bool ReplaceFont(FontHelper.FontLoadDelegate fontLoadDelegate)
         {
             // have to do this because of issue: https://github.com/ocornut/imgui/issues/6858
-            ImGuiNative.igGetIO()->FontDefault = null;
+            ImGui.GetIO().FontDefault = null;
             this.fontUpdates.Enqueue(fontLoadDelegate);
             return true;
         }

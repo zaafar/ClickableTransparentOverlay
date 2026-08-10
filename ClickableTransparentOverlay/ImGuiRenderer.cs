@@ -1,19 +1,19 @@
 ﻿namespace ClickableTransparentOverlay
 {
-    using ImGuiNET;
-    using ImDrawIdx = System.UInt16;
-    using Vortice.DXGI;
-    using Vortice.Direct3D;
-    using Vortice.Direct3D11;
-    using Vortice.D3DCompiler;
-    using Vortice.Mathematics;
-    using System.Numerics;
-    using System.Collections.Generic;
-    using System;
-    using System.Linq;
+    using Hexa.NET.ImGui;
     using SixLabors.ImageSharp;
     using SixLabors.ImageSharp.PixelFormats;
+    using System;
     using System.Buffers;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Numerics;
+    using Vortice.D3DCompiler;
+    using Vortice.Direct3D;
+    using Vortice.Direct3D11;
+    using Vortice.DXGI;
+    using Vortice.Mathematics;
+    using ImDrawIdx = System.UInt16;
 
     unsafe internal sealed class ImGuiRenderer : IDisposable
     {
@@ -45,6 +45,7 @@
             ImGui.CreateContext();
             var io = ImGui.GetIO();
             io.BackendFlags |= ImGuiBackendFlags.RendererHasVtxOffset;  // We can honor the ImDrawCmd::VtxOffset field, allowing for large meshes.
+            io.BackendFlags |= ImGuiBackendFlags.RendererHasTextures;
             io.ConfigFlags |= ImGuiConfigFlags.NavEnableKeyboard;
             io.ConfigFlags |= ImGuiConfigFlags.DockingEnable;
             ImGui.StyleColorsDark();
@@ -68,6 +69,7 @@
             if (data.DisplaySize.X <= 0.0f || data.DisplaySize.Y <= 0.0f)
                 return;
 
+            this.SyncTextures();
             ID3D11DeviceContext ctx = deviceContext!;
 
             if (vertexBuffer == null || vertexBufferSize < data.TotalVtxCount)
@@ -149,24 +151,32 @@
                 for (int i = 0; i < cmdList.CmdBuffer.Size; i++)
                 {
                     var cmd = cmdList.CmdBuffer[i];
-                    if (cmd.UserCallback != IntPtr.Zero)
-                    {
-                        throw new NotImplementedException("user callbacks not implemented");
-                    }
-                    else
+                    if (cmd.UserCallback == null)
                     {
                         ctx.RSSetScissorRect(
-                            (int)cmd.ClipRect.X,
-                            (int)cmd.ClipRect.Y,
-                            (int)(cmd.ClipRect.Z - cmd.ClipRect.X),
-                            (int)(cmd.ClipRect.W - cmd.ClipRect.Y));
+                          (int)cmd.ClipRect.X,
+                          (int)cmd.ClipRect.Y,
+                          (int)(cmd.ClipRect.Z - cmd.ClipRect.X),
+                          (int)(cmd.ClipRect.W - cmd.ClipRect.Y));
 
                         if (textureResources.TryGetValue(cmd.GetTexID(), out var texture))
                         {
                             ctx.PSSetShaderResource(0, texture);
                         }
+                        else
+                        {
+                            ctx.PSSetShaderResource(0, default!);
+                        }
 
                         ctx.DrawIndexed((int)cmd.ElemCount, (int)(cmd.IdxOffset + global_idx_offset), (int)(cmd.VtxOffset + global_vtx_offset));
+                    }
+                    else if (cmd.UserCallback == unchecked((void*)(-8))) // ImDrawCallback_ResetRenderState
+                    {
+                        SetupRenderState(data, ctx);
+                    }
+                    else
+                    {
+                        throw new NotImplementedException("user callbacks not implemented");
                     }
                 }
                 global_idx_offset += cmdList.IdxBuffer.Size;
@@ -227,12 +237,11 @@
         public void UpdateFontTexture(FontHelper.FontLoadDelegate fontLoadFunc)
         {
             var io = ImGui.GetIO();
-            this.DeRegisterTexture(io.Fonts.TexID)?.Dispose();
             io.Fonts.Clear();
-            var config = ImGuiNative.ImFontConfig_ImFontConfig();
+            var config = new ImFontConfigPtr();
             fontLoadFunc(config);
-            this.CreateFontsTexture();
-            ImGuiNative.ImFontConfig_destroy(config);
+            io.FontDefault = null;
+            config.Destroy();
         }
 
         void SetupRenderState(ImDrawDataPtr drawData, ID3D11DeviceContext ctx)
@@ -258,24 +267,61 @@
             ctx.RSSetState(rasterizerState);
         }
 
-        void CreateFontsTexture()
+        void SyncTextures()
         {
-            var io = ImGui.GetIO();
-            io.Fonts.GetTexDataAsRGBA32(out byte* pixels, out var width, out var height);
-            var texDesc = new Texture2DDescription(Format.R8G8B8A8_UNorm, width, height, 1, 1);
-            var subResource = new SubresourceData(pixels, texDesc.Width * 4);
-            using var texture = device!.CreateTexture2D(texDesc, new[] { subResource });
-            var resViewDesc = new ShaderResourceViewDescription(
-                texture,
-                ShaderResourceViewDimension.Texture2D,
-                Format.R8G8B8A8_UNorm,
-                0,
-                texDesc.MipLevels);
-
-            io.Fonts.SetTexID(RegisterTexture(device!.CreateShaderResourceView(texture, resViewDesc)));
-            io.Fonts.ClearTexData();
+            var platformIO = ImGui.GetPlatformIO();
+            for (int i = 0; i < platformIO.Textures.Size; i++)
+            {
+                var tex = platformIO.Textures[i];
+                if (tex.Status != ImTextureStatus.Ok)
+                {
+                    this.UpdateTexture(tex);
+                }
+            }
         }
 
+        void UpdateTexture(ImTextureDataPtr tex)
+        {
+            if (tex.Status == ImTextureStatus.WantCreate)
+            {
+                var format = tex.Format == ImTextureFormat.Alpha8 ? Format.R8_UNorm : Format.R8G8B8A8_UNorm;
+                var texDesc = new Texture2DDescription(format, tex.Width, tex.Height, 1, 1);
+                var subResource = new SubresourceData(tex.GetPixels(), tex.GetPitch());
+                using var texture = device!.CreateTexture2D(texDesc, new[] { subResource });
+
+                var resViewDesc = new ShaderResourceViewDescription(
+                    texture,
+                    ShaderResourceViewDimension.Texture2D,
+                    format,
+                    0,
+                    texDesc.MipLevels);
+
+                var srv = device!.CreateShaderResourceView(texture, resViewDesc);
+                tex.SetTexID(this.RegisterTexture(srv));
+                tex.SetStatus(ImTextureStatus.Ok);
+            }
+            else if (tex.Status == ImTextureStatus.WantUpdates)
+            {
+                if (textureResources.TryGetValue(tex.GetTexID(), out var srv))
+                {
+                    using var texture = srv.Resource.QueryInterface<ID3D11Texture2D>();
+                    for (int i = 0; i < tex.Updates.Size; i++)
+                    {
+                        var rect = tex.Updates[i];
+                        var box = new Box(rect.X, rect.Y, 0, rect.X + rect.W, rect.Y + rect.H, 1);
+                        deviceContext!.UpdateSubresource(texture, 0, box, (IntPtr)tex.GetPixelsAt(rect.X, rect.Y), tex.GetPitch(), 0);
+                    }
+                }
+
+                tex.SetStatus(ImTextureStatus.Ok);
+            }
+            else if (tex.Status == ImTextureStatus.WantDestroy && tex.UnusedFrames > 0)
+            {
+                this.DeRegisterTexture(tex.GetTexID())?.Dispose();
+                tex.SetTexID(IntPtr.Zero);
+                tex.SetStatus(ImTextureStatus.Destroyed);
+            }
+        }
         void CreateFontSampler()
         {
             var samplerDesc = new SamplerDescription(
@@ -405,7 +451,6 @@
             var depthDesc = new DepthStencilDescription(false, DepthWriteMask.All, ComparisonFunction.Always);
             depthStencilState = device.CreateDepthStencilState(depthDesc);
 
-            this.CreateFontsTexture();
             this.CreateFontSampler();
         }
 
