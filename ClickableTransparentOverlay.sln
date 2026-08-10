@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 18
 VisualStudioVersion = 18.9.12023.133 insiders
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ClickableTransparentOverlay", "ClickableTransparentOverlay\ClickableTransparentOverlay.csproj", "{11B9AFFF-A622-4479-A9A6-D7B4803D7161}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ClickableTransparentOverlay.Hexa", "ClickableTransparentOverlay\ClickableTransparentOverlay.Hexa.csproj", "{11B9AFFF-A622-4479-A9A6-D7B4803D7161}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SimpleExample", "Examples\SimpleExample\SimpleExample.csproj", "{1C727C51-8721-4952-BF5C-5D7BE26377C9}"
 EndProject

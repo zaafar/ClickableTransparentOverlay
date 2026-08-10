@@ -1,0 +1,65 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <NoWin32Manifest>true</NoWin32Manifest>
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+    <Description>A library for creating clickable transparent overlays on Windows using Hexa.NET.ImGui.</Description>
+    <PackageProjectUrl>https://github.com/xfi0/ClickableTransparentOverlay.Hexa</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/xfi0/ClickableTransparentOverlay.Hexa</RepositoryUrl>
+    <Version>11.1.0</Version>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <PublishAot>true</PublishAot>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <Platforms>AnyCPU;x64;x86</Platforms>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <Title>Clickable Transparent Overlay Hexa</Title>
+    <Authors>zaafar, dom</Authors>
+    <Copyright>Copyright (c) zaafar 2021, xfi0 (dom) 2026</Copyright>
+    <PackageTags>ImGui;Hexa.NET;ImGui.NET;overlay;transparent;clickable;direct3d;</PackageTags>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <WarningLevel>8</WarningLevel>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <WarningLevel>8</WarningLevel>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">
+    <WarningLevel>8</WarningLevel>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <WarningLevel>8</WarningLevel>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <WarningLevel>8</WarningLevel>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x86'">
+    <WarningLevel>8</WarningLevel>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\LICENSE">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Hexa.NET.ImGui" Version="2.2.9" />
+    <PackageReference Include="SixLabors.ImageSharp" Version="3.1.12" />
+    <PackageReference Include="Vortice.D3DCompiler" Version="3.5.0" />
+    <PackageReference Include="Vortice.Direct3D11" Version="3.5.0" />
+    <None Include="..\README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+</Project>
