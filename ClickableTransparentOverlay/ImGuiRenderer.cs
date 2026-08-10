@@ -19,20 +19,18 @@
     {
         const int VertexConstantBufferSize = 16 * 4;
 
-        ID3D11Device device;
-        ID3D11DeviceContext deviceContext;
-        ID3D11Buffer vertexBuffer;
-        ID3D11Buffer indexBuffer;
-        Blob vertexShaderBlob;
-        ID3D11VertexShader vertexShader;
-        ID3D11InputLayout inputLayout;
-        ID3D11Buffer constantBuffer;
-        Blob pixelShaderBlob;
-        ID3D11PixelShader pixelShader;
-        ID3D11SamplerState fontSampler;
-        ID3D11RasterizerState rasterizerState;
-        ID3D11BlendState blendState;
-        ID3D11DepthStencilState depthStencilState;
+        ID3D11Device? device;
+        ID3D11DeviceContext? deviceContext;
+        ID3D11Buffer? vertexBuffer, indexBuffer, constantBuffer;
+        Blob? vertexShaderBlob;
+        ID3D11VertexShader? vertexShader;
+        ID3D11InputLayout? inputLayout;
+        Blob? pixelShaderBlob;
+        ID3D11PixelShader? pixelShader;
+        ID3D11SamplerState? fontSampler;
+        ID3D11RasterizerState? rasterizerState;
+        ID3D11BlendState? blendState;
+        ID3D11DepthStencilState? depthStencilState;
         int vertexBufferSize = 5000, indexBufferSize = 10000;
         readonly Dictionary<IntPtr, ID3D11ShaderResourceView> textureResources = new();
 
@@ -70,7 +68,7 @@
             if (data.DisplaySize.X <= 0.0f || data.DisplaySize.Y <= 0.0f)
                 return;
 
-            ID3D11DeviceContext ctx = deviceContext;
+            ID3D11DeviceContext ctx = deviceContext!;
 
             if (vertexBuffer == null || vertexBufferSize < data.TotalVtxCount)
             {
@@ -82,7 +80,7 @@
                     BindFlags.VertexBuffer,
                     ResourceUsage.Dynamic,
                     CpuAccessFlags.Write);
-                vertexBuffer = device.CreateBuffer(desc);
+                vertexBuffer = device!.CreateBuffer(desc);
             }
 
             if (indexBuffer == null || indexBufferSize < data.TotalIdxCount)
@@ -97,7 +95,7 @@
                     ResourceUsage.Dynamic,
                     CpuAccessFlags.Write);
 
-                indexBuffer = device.CreateBuffer(desc);
+                indexBuffer = device!.CreateBuffer(desc);
             }
 
             // Upload vertex/index data into a single contiguous GPU buffer
@@ -124,7 +122,7 @@
             // Setup orthographic projection matrix into our constant buffer
             // Our visible imgui space lies from draw_data.DisplayPos (top left) to draw_data.DisplayPos+data_data.DisplaySize (bottom right). DisplayPos is (0,0) for single viewport apps.
 
-            var constResource = ctx.Map(constantBuffer, 0, MapMode.WriteDiscard, Vortice.Direct3D11.MapFlags.None);
+            var constResource = ctx.Map(constantBuffer!, 0, MapMode.WriteDiscard, Vortice.Direct3D11.MapFlags.None);
             var span = constResource.AsSpan<float>(VertexConstantBufferSize);
             float L = data.DisplayPos.X;
             float R = data.DisplayPos.X + data.DisplaySize.X;
@@ -196,8 +194,8 @@
             inputLayout?.Release();
             vertexShader?.Release();
             vertexShaderBlob?.Release();
-            device.Release();
-            deviceContext.Release();
+            device?.Release();
+            deviceContext?.Release();
         }
 
         public void Resize(int width, int height)
@@ -215,7 +213,7 @@
 
             using MemoryHandle imageMemoryHandle = memory.Pin();
             var subResource = new SubresourceData(imageMemoryHandle.Pointer, texDesc.Width * 4);
-            using var texture = device.CreateTexture2D(texDesc, new[] { subResource });
+            using var texture = device!.CreateTexture2D(texDesc, new[] { subResource });
             var resViewDesc = new ShaderResourceViewDescription(texture, ShaderResourceViewDimension.Texture2D, format, 0, texDesc.MipLevels);
             return RegisterTexture(device.CreateShaderResourceView(texture, resViewDesc));
         }
@@ -243,7 +241,7 @@
             ctx.RSSetViewport(viewport);
             int stride = sizeof(ImDrawVert);
             ctx.IASetInputLayout(inputLayout);
-            ctx.IASetVertexBuffer(0, vertexBuffer, stride);
+            ctx.IASetVertexBuffer(0, vertexBuffer!, stride);
             ctx.IASetIndexBuffer(indexBuffer, sizeof(ImDrawIdx) == 2 ? Format.R16_UInt : Format.R32_UInt, 0);
             ctx.IASetPrimitiveTopology(PrimitiveTopology.TriangleList);
             ctx.VSSetShader(vertexShader);
@@ -266,14 +264,15 @@
             io.Fonts.GetTexDataAsRGBA32(out byte* pixels, out var width, out var height);
             var texDesc = new Texture2DDescription(Format.R8G8B8A8_UNorm, width, height, 1, 1);
             var subResource = new SubresourceData(pixels, texDesc.Width * 4);
-            using var texture = device.CreateTexture2D(texDesc, new[] { subResource });
+            using var texture = device!.CreateTexture2D(texDesc, new[] { subResource });
             var resViewDesc = new ShaderResourceViewDescription(
                 texture,
                 ShaderResourceViewDimension.Texture2D,
                 Format.R8G8B8A8_UNorm,
                 0,
                 texDesc.MipLevels);
-            io.Fonts.SetTexID(RegisterTexture(device.CreateShaderResourceView(texture, resViewDesc)));
+
+            io.Fonts.SetTexID(RegisterTexture(device!.CreateShaderResourceView(texture, resViewDesc)));
             io.Fonts.ClearTexData();
         }
 
@@ -290,7 +289,7 @@
                 0f,
                 0f);
 
-            this.fontSampler = device.CreateSamplerState(samplerDesc);
+            this.fontSampler = device!.CreateSamplerState(samplerDesc);
         }
 
         IntPtr RegisterTexture(ID3D11ShaderResourceView texture)
@@ -353,7 +352,7 @@
             if (vertexShaderBlob == null)
                 throw new Exception("error compiling vertex shader");
 
-            vertexShader = device.CreateVertexShader(vertexShaderBlob);
+            vertexShader = device!.CreateVertexShader(vertexShaderBlob);
 
             var inputElements = new[]
             {

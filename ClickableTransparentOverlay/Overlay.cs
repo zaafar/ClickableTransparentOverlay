@@ -37,19 +37,19 @@
         ///  Do not assume this class is initialized.
         ///  Consider using this variable only in <see cref="PostInitialized"/> or <see cref="Render"/> function.
         /// </summary>
-        public Win32Window window;
-        private ID3D11Device device;
-        private ID3D11DeviceContext deviceContext;
-        private IDXGISwapChain swapChain;
-        private ID3D11Texture2D backBuffer;
-        private ID3D11RenderTargetView renderView;
+        public Win32Window? window;
+        private ID3D11Device? device;
+        private ID3D11DeviceContext? deviceContext;
+        private IDXGISwapChain? swapChain;
+        private ID3D11Texture2D? backBuffer;
+        private ID3D11RenderTargetView? renderView;
 
-        private ImGuiRenderer renderer;
-        private ImGuiInputHandler inputhandler;
+        private ImGuiRenderer? renderer;
+        private ImGuiInputHandler? inputhandler;
 
         private bool _disposedValue;
         private IntPtr selfPointer;
-        private Thread renderThread;
+        private Thread? renderThread;
         private volatile CancellationTokenSource cancellationTokenSource;
         private volatile bool overlayIsReady;
         private int fpslimit;
@@ -161,6 +161,7 @@
             this.format = Format.R8G8B8A8_UNorm;
             this.loadedTexturesPtrs = new();
             this.fontUpdates = new();
+
             if (DPIAware)
             {
                 User32.SetProcessDPIAware();
@@ -352,12 +353,12 @@
         {
             get
             {
-                return this.window.Dimensions.Location;
+                return this.window!.Dimensions.Location;
             }
 
             set
             {
-                if (this.window.Dimensions.Location != value)
+                if (this.window!.Dimensions.Location != value)
                 {
                     this.window.Dimensions.Location = value;
                     User32.MoveWindow(this.window.Handle, value.X, value.Y, this.window.Dimensions.Width, this.window.Dimensions.Height, true);
@@ -372,11 +373,11 @@
         {
             get
             {
-                return this.window.Dimensions.Size;
+                return this.window!.Dimensions.Size;
             }
             set
             {
-                if (this.window.Dimensions.Size != value)
+                if (this.window!.Dimensions.Size != value)
                 {
                     this.window.Dimensions.Size = value;
                     User32.MoveWindow(this.window.Handle, this.window.Dimensions.X, this.window.Dimensions.Y, value.Width, value.Height, true);
@@ -419,7 +420,7 @@
                 var decorderOptions = new DecoderOptions();
                 decorderOptions.Configuration.PreferContiguousImageBuffers = true;
                 using var image = Image.Load<Rgba32>(decorderOptions, filePath);
-                handle = this.renderer.CreateImageTexture(image, srgb ? Format.R8G8B8A8_UNorm_SRgb : Format.R8G8B8A8_UNorm);
+                handle = this.renderer!.CreateImageTexture(image, srgb ? Format.R8G8B8A8_UNorm_SRgb : Format.R8G8B8A8_UNorm);
                 width = (uint)image.Width;
                 height = (uint)image.Height;
                 this.loadedTexturesPtrs.Add(filePath, new(handle, width, height));
@@ -444,7 +445,7 @@
             }
             else
             {
-                handle = this.renderer.CreateImageTexture(image, srgb ? Format.R8G8B8A8_UNorm_SRgb : Format.R8G8B8A8_UNorm);
+                handle = this.renderer!.CreateImageTexture(image, srgb ? Format.R8G8B8A8_UNorm_SRgb : Format.R8G8B8A8_UNorm);
                 this.loadedTexturesPtrs.Add(name, new(handle, (uint)image.Width, (uint)image.Height));
             }
         }
@@ -458,7 +459,7 @@
         {
             if (this.loadedTexturesPtrs.Remove(key, out var data))
             {
-                return this.renderer.RemoveImageTexture(data.Handle);
+                return this.renderer!.RemoveImageTexture(data.Handle);
             }
 
             return false;
@@ -535,19 +536,19 @@
             {
                 currentTimeSec = stopwatch.ElapsedTicks / (float)Stopwatch.Frequency;
                 stopwatch.Restart();
-                this.window.PumpEvents();
-                Utils.SetOverlayClickable(this.window.Handle, this.inputhandler.Update());
-                this.renderer.Update(currentTimeSec, () => { Render(); });
-                this.deviceContext.OMSetRenderTargets(renderView);
-                this.deviceContext.ClearRenderTargetView(renderView, clearColor);
-                this.renderer.Render();
+                this.window!.PumpEvents();
+                Utils.SetOverlayClickable(this.window!.Handle, this.inputhandler!.Update());
+                this.renderer!.Update(currentTimeSec, () => { Render(); });
+                this.deviceContext!.OMSetRenderTargets(renderView!);
+                this.deviceContext!.ClearRenderTargetView(renderView!, clearColor);
+                this.renderer!.Render();
                 if (VSync)
                 {
-                    this.swapChain.Present(1, PresentFlags.None); // Present with vsync
+                    this.swapChain!.Present(1, PresentFlags.None); // Present with vsync
                 }
                 else if (this.FPSLimit > 0)
                 {
-                    this.swapChain.Present(0, PresentFlags.None);
+                    this.swapChain!.Present(0, PresentFlags.None);
                     delayMs = 1000f / this.FPSLimit;
                     currentTimeSec = stopwatch.ElapsedTicks / (float)Stopwatch.Frequency;
                     sleepTimeMs = (int)(delayMs - (currentTimeSec * 1000));
@@ -558,7 +559,7 @@
                 }
                 else
                 {
-                    this.swapChain.Present(0, PresentFlags.None); // Present without vsync
+                    this.swapChain!.Present(0, PresentFlags.None); // Present without vsync
                 }
 
                 this.ReplaceFontIfRequired();
@@ -580,13 +581,13 @@
         {
             if (renderView == null)//first show
             {
-                using var dxgiFactory = device.QueryInterface<IDXGIDevice>().GetParent<IDXGIAdapter>().GetParent<IDXGIFactory>();
+                using var dxgiFactory = device!.QueryInterface<IDXGIDevice>().GetParent<IDXGIAdapter>().GetParent<IDXGIFactory>();
                 var swapchainDesc = new SwapChainDescription()
                 {
                     BufferCount = 1,
                     BufferDescription = new ModeDescription(width, height, this.format),
                     Windowed = true,
-                    OutputWindow = this.window.Handle,
+                    OutputWindow = this.window!.Handle,
                     SampleDescription = new SampleDescription(1, 0),
                     SwapEffect = SwapEffect.Discard,
                     BufferUsage = Usage.RenderTargetOutput,
@@ -601,15 +602,15 @@
             else
             {
                 this.renderView.Dispose();
-                this.backBuffer.Dispose();
+                this.backBuffer!.Dispose();
 
-                this.swapChain.ResizeBuffers(1, width, height, this.format, SwapChainFlags.None);
+                this.swapChain!.ResizeBuffers(1, width, height, this.format, SwapChainFlags.None);
 
                 backBuffer = this.swapChain.GetBuffer<ID3D11Texture2D1>(0);
-                renderView = this.device.CreateRenderTargetView(backBuffer);
+                renderView = this.device!.CreateRenderTargetView(backBuffer);
             }
 
-            this.renderer.Resize(width, height);
+            this.renderer!.Resize(width, height);
         }
 
         private async Task InitializeResources()
@@ -665,7 +666,7 @@
             switch (msg)
             {
                 case WindowMessage.ShowWindow:
-                    this.OnResize(this.window.Dimensions.Width, this.window.Dimensions.Height);
+                    this.OnResize(this.window!.Dimensions.Width, this.window.Dimensions.Height);
                     break;
                 case WindowMessage.Size:
                     switch ((SizeMessage)wParam)
@@ -694,7 +695,7 @@
         {
             if (this.overlayIsReady)
             {
-                if (this.inputhandler.ProcessMessage((WindowMessage)msg, wParam, lParam) ||
+                if (this.inputhandler!.ProcessMessage((WindowMessage)msg, wParam, lParam) ||
                     this.ProcessMessage((WindowMessage)msg, wParam, lParam))
                 {
                     return IntPtr.Zero;
