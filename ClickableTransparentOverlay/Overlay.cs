@@ -58,6 +58,7 @@
 
         private readonly ConcurrentQueue<FontHelper.FontLoadDelegate> fontUpdates;
 
+        private const int SM_CMONITORS = 0x50;
         #region Constructors
 
         /// <summary>
@@ -147,11 +148,11 @@
         /// <param name="windowHeight">
         /// height to use when creating the clickable transparent overlay window
         /// </param>
-        public Overlay(string windowTitle, bool DPIAware, int windowWidth, int windowHeight)
+        public Overlay(string windowTitle, bool DPIAware, int windowWidth, int windowHeight, bool vSync = false)
         {
             this.initialWindowWidth = windowWidth;
             this.initialWindowHeight = windowHeight;
-            this.VSync = false;
+            this.VSync = vSync;
             this.FPSLimit = 60;
             this._disposedValue = false;
             this.overlayIsReady = false;
@@ -390,7 +391,7 @@
         {
             get
             {
-                return User32.GetSystemMetrics(0x50); // SM_CMONITORS
+                return User32.GetSystemMetrics(SM_CMONITORS);
             }
         }
 
@@ -480,7 +481,7 @@
                 }
 
                 this.renderThread?.Join();
-                foreach(var key in this.loadedTexturesPtrs.Keys.ToArray())
+                foreach (var key in this.loadedTexturesPtrs.Keys.ToArray())
                 {
                     this.RemoveImage(key);
                 }
@@ -632,7 +633,7 @@
                 IconHandle = IntPtr.Zero,
                 MenuName = string.Empty,
                 ClassName = this.title,
-                SmallIconHandle= IntPtr.Zero,
+                SmallIconHandle = IntPtr.Zero,
                 ClassExtraBytes = 0,
                 WindowExtraBytes = 0
             };
