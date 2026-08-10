@@ -13,7 +13,7 @@ https://www.nuget.org/packages/ClickableTransparentOverlay
 
 * [.NET 8](https://dotnet.microsoft.com/en-us/download/dotnet/8.0)
 * [Vortice.Windows](https://github.com/amerkoleci/Vortice.Windows)
-* [ImGui.NET](https://github.com/mellinoe/ImGui.NET/)
+* [Hexa.NET.ImGui](https://github.com/HexaEngine/Hexa.NET.ImGui)
 * [ImageSharp](https://github.com/SixLabors/ImageSharp)
 
 # Reference code to watch
